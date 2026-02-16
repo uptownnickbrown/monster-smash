@@ -9,7 +9,6 @@ import { initAudio, unlockAudio } from './audio/sound-manager.js';
 
 const gameContainer = document.getElementById('game');
 let currentScreen = null;
-let audioUnlocked = false;
 
 // Screen factory map - screens are lazily loaded
 const screenFactories = {
@@ -83,10 +82,7 @@ async function init() {
   // Initialize audio (will be unlocked on first tap)
   initAudio();
   document.addEventListener('pointerdown', () => {
-    if (!audioUnlocked) {
-      unlockAudio();
-      audioUnlocked = true;
-    }
+    unlockAudio();
   }, { once: false });
 
   // Show title screen immediately

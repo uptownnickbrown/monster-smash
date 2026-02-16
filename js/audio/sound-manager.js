@@ -45,7 +45,11 @@ export function setVolume(vol) {
 }
 
 export function isReady() {
-  return initialized && audioCtx && audioCtx.state === 'running';
+  if (!initialized || !audioCtx) return false;
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+  return audioCtx.state === 'running';
 }
 
 // Create a noise buffer for crash/explosion sounds
