@@ -106,33 +106,52 @@ function populateShowcase(trucks) {
   const showcase = screenEl?.querySelector('#truck-showcase');
   if (!showcase) return;
 
-  // Sort: legendaries first, then by name within rarity
-  const rarityOrder = { legendary: 0, epic: 1, rare: 2, common: 3 };
-  const sorted = [...trucks].sort((a, b) => {
-    const diff = (rarityOrder[a.rarity] ?? 4) - (rarityOrder[b.rarity] ?? 4);
-    if (diff !== 0) return diff;
-    return a.name.localeCompare(b.name);
+  // Shuffle trucks for visual variety
+  const shuffled = [...trucks].sort(() => Math.random() - 0.5);
+
+  // Create 4 edge strips (top, right, bottom, left)
+  const positions = ['top', 'right', 'bottom', 'left'];
+  const strips = positions.map(pos => {
+    const strip = document.createElement('div');
+    strip.className = `showcase-strip showcase-strip--${pos}`;
+    showcase.appendChild(strip);
+    return strip;
   });
 
-  sorted.forEach((truck, i) => {
-    const imgSrc = renderTruckToImage(truck, 120, 96);
-    const wrapper = document.createElement('div');
-    wrapper.className = `showcase-truck showcase-truck--${truck.rarity}`;
-    wrapper.style.setProperty('--float-delay', `${(i * 0.37) % 5}s`);
+  // Distribute trucks: top ~30%, bottom ~30%, right ~20%, left ~20%
+  const total = shuffled.length;
+  const topCount = Math.ceil(total * 0.3);
+  const bottomCount = Math.ceil(total * 0.3);
+  const rightCount = Math.ceil(total * 0.2);
+  // left gets the rest
+  const allocations = [topCount, rightCount, bottomCount, total];
 
-    wrapper.innerHTML = `
-      <img src="${imgSrc}" alt="${truck.name}" draggable="false">
-      <div class="showcase-truck__name">${truck.name}</div>
-    `;
+  let idx = 0;
+  strips.forEach((strip, si) => {
+    const end = Math.min(idx + allocations[si], total);
+    for (let i = idx; i < end; i++) {
+      const truck = shuffled[i];
+      const imgSrc = renderTruckToImage(truck, 90, 72);
+      const wrapper = document.createElement('div');
+      wrapper.className = `showcase-truck showcase-truck--${truck.rarity}`;
+      wrapper.style.setProperty('--float-delay', `${(i * 0.25) % 4}s`);
 
-    wrapper.addEventListener('pointerdown', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      showTruckPopup(truck, wrapper);
-      playTruckSound(truck.rarity);
-    });
+      const img = document.createElement('img');
+      img.src = imgSrc;
+      img.alt = truck.name;
+      img.draggable = false;
+      wrapper.appendChild(img);
 
-    showcase.appendChild(wrapper);
+      wrapper.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        showTruckPopup(truck, wrapper);
+        playTruckSound(truck.rarity);
+      });
+
+      strip.appendChild(wrapper);
+    }
+    idx = end;
   });
 }
 
@@ -288,86 +307,89 @@ function getTitleStyles() {
       width: 100%;
       height: 100%;
       padding: 20px;
+      pointer-events: none;
     }
 
-    /* ---- Truck Showcase Grid ---- */
+    /* ---- Truck Showcase (border layout) ---- */
     .title-truck-showcase {
       position: absolute;
       inset: 0;
       z-index: 1;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      align-content: center;
-      gap: 6px;
-      padding: 10px;
       overflow: hidden;
-      -webkit-mask-image: radial-gradient(
-        ellipse 55% 48% at 50% 42%,
-        transparent 0%,
-        transparent 35%,
-        rgba(0,0,0,0.2) 55%,
-        rgba(0,0,0,0.6) 75%,
-        rgba(0,0,0,1) 100%
-      );
-      mask-image: radial-gradient(
-        ellipse 55% 48% at 50% 42%,
-        transparent 0%,
-        transparent 35%,
-        rgba(0,0,0,0.2) 55%,
-        rgba(0,0,0,0.6) 75%,
-        rgba(0,0,0,1) 100%
-      );
+      pointer-events: none;
+    }
+
+    .showcase-strip {
+      position: absolute;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      pointer-events: none;
+    }
+
+    .showcase-strip--top {
+      top: 0; left: 0; right: 0;
+      flex-direction: row;
+      justify-content: center;
+      padding: 4px 6px;
+    }
+
+    .showcase-strip--bottom {
+      bottom: 0; left: 0; right: 0;
+      flex-direction: row;
+      justify-content: center;
+      padding: 4px 6px;
+    }
+
+    .showcase-strip--left {
+      top: 62px; bottom: 62px; left: 0;
+      flex-direction: column;
+      justify-content: center;
+      gap: 0px;
+      padding: 4px;
+    }
+
+    .showcase-strip--right {
+      top: 62px; bottom: 62px; right: 0;
+      flex-direction: column;
+      justify-content: center;
+      gap: 0px;
+      padding: 4px;
     }
 
     .showcase-truck {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      flex-shrink: 0;
       cursor: pointer;
       pointer-events: auto;
       opacity: 0;
       animation: showcaseFadeIn 0.5s ease forwards;
       animation-delay: var(--float-delay, 0s);
-      transition: transform 0.2s ease, opacity 0.2s ease;
+      transition: transform 0.2s ease;
     }
 
     .showcase-truck:active {
-      transform: scale(1.2);
+      transform: scale(1.25);
     }
 
     .showcase-truck img {
-      width: 100px;
-      height: 80px;
+      width: 70px;
+      height: 56px;
       object-fit: contain;
-      filter: brightness(0.8);
+      filter: brightness(0.65);
       transition: filter 0.2s;
     }
 
     .showcase-truck:active img {
-      filter: brightness(1.2);
+      filter: brightness(1.3);
     }
 
     .showcase-truck--legendary img {
-      filter: brightness(0.9) drop-shadow(0 0 6px rgba(255,170,0,0.5));
+      filter: brightness(0.85) drop-shadow(0 0 5px rgba(255,170,0,0.5));
     }
 
     .showcase-truck--epic img {
-      filter: brightness(0.85) drop-shadow(0 0 4px rgba(180,74,255,0.4));
+      filter: brightness(0.8) drop-shadow(0 0 4px rgba(180,74,255,0.4));
     }
-
-    .showcase-truck__name {
-      font-family: var(--font-body);
-      font-size: 8px;
-      color: var(--chrome-dark);
-      letter-spacing: 1px;
-      text-align: center;
-      margin-top: -4px;
-      opacity: 0.6;
-    }
-
-    .showcase-truck--legendary .showcase-truck__name { color: #ffaa00; opacity: 0.9; }
-    .showcase-truck--epic .showcase-truck__name { color: #b44aff; opacity: 0.8; }
 
     @keyframes showcaseFadeIn {
       0% { opacity: 0; transform: scale(0.8); }
@@ -658,6 +680,7 @@ function getTitleStyles() {
       border-radius: var(--radius-xl);
       position: relative;
       z-index: 5;
+      pointer-events: auto;
     }
 
     .title-play-text {
@@ -720,8 +743,10 @@ function getTitleStyles() {
       .title-badge { margin-bottom: 4px; }
       .title-tagline { margin-top: 8px; }
       .title-play-btn { margin-top: 16px; padding: 14px 48px; }
-      .showcase-truck img { width: 70px; height: 56px; }
-      .showcase-truck__name { display: none; }
+      .showcase-truck img { width: 55px; height: 44px; }
+      .showcase-strip--left, .showcase-strip--right {
+        top: 48px; bottom: 48px;
+      }
     }
   `;
 }
