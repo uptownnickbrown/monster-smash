@@ -1,0 +1,34 @@
+{
+  "id": "pixel-puncher",
+  "name": "Pixel Puncher",
+  "tagline": "Reality Is A Glitch",
+  "rarity": "common",
+  "stats": {
+    "smashDamage": 50,
+    "speed": 55,
+    "shield": 45,
+    "weight": 50,
+    "airTime": 60
+  },
+  "specialAbility": {
+    "name": "Glitch",
+    "description": "Hacks into the enemy's systems and scrambles all their stats around like a video game glitch!",
+    "type": "random",
+    "multiplier": 1,
+    "duration": 2,
+    "icon": "pixel"
+  },
+  "visual": {
+    "bodyType": "buggy",
+    "primaryColor": "#3366ff",
+    "secondaryColor": "#33ff33",
+    "accentColor": "#44ff44",
+    "pattern": "stripes",
+    "patternColor": "#22cc22",
+    "wheelColor": "#2244aa",
+    "decals": [],
+    "glowColor": "#44ff44",
+    "chassisStyle": "low"
+  },
+  "lore": "Pixel Puncher glitched its way right out of a video game and into the monster truck arena! It flickers and buzzes with digital energy, and sometimes parts of it turn into blocky pixels. When it activates Glitch mode, the whole arena starts looking like a broken TV screen and nobody knows what's going to happen next!"
+}

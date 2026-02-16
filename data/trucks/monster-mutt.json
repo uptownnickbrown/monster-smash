@@ -1,0 +1,34 @@
+{
+  "id": "monster-mutt",
+  "name": "Monster Mutt",
+  "tagline": "Who Let It Out",
+  "rarity": "rare",
+  "stats": {
+    "smashDamage": 62,
+    "speed": 70,
+    "shield": 58,
+    "weight": 55,
+    "airTime": 70
+  },
+  "specialAbility": {
+    "name": "Fetch!",
+    "description": "Monster Mutt leaps through the air and pounces on the enemy like a giant puppy catching a ball -- for 25 damage!",
+    "type": "direct-damage",
+    "multiplier": 25,
+    "duration": 1,
+    "icon": "paw-print"
+  },
+  "visual": {
+    "bodyType": "buggy",
+    "primaryColor": "#cc6633",
+    "secondaryColor": "#ffcc88",
+    "accentColor": "#995522",
+    "pattern": "splatter",
+    "patternColor": "#ffcc88",
+    "wheelColor": "#664422",
+    "decals": ["ears"],
+    "glowColor": "#ffcc88",
+    "chassisStyle": "normal"
+  },
+  "lore": "Half truck, half giant puppy, ALL trouble! Monster Mutt has big floppy ears that flap in the wind, a waggy tail on the back, and a tongue hanging out the front. It gets the zoomies in the middle of battle and bounces around the arena like the world's most destructive good boy. Who's a good truck? MONSTER MUTT IS!"
+}

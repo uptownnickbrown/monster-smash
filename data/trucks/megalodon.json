@@ -1,0 +1,34 @@
+{
+  "id": "megalodon",
+  "name": "Megalodon",
+  "tagline": "Jaws Of Steel",
+  "rarity": "epic",
+  "stats": {
+    "smashDamage": 80,
+    "speed": 78,
+    "shield": 70,
+    "weight": 72,
+    "airTime": 70
+  },
+  "specialAbility": {
+    "name": "Feeding Frenzy",
+    "description": "Megalodon goes into a wild feeding frenzy, biting and smashing opponents three times in a row!",
+    "type": "multi-hit",
+    "multiplier": 0.6,
+    "duration": 1,
+    "icon": "shark"
+  },
+  "visual": {
+    "bodyType": "beast",
+    "primaryColor": "#0066cc",
+    "secondaryColor": "#00aaff",
+    "accentColor": "#003388",
+    "pattern": "scales",
+    "patternColor": "#00aaff",
+    "wheelColor": "#224466",
+    "decals": ["fin", "teeth"],
+    "glowColor": "#00aaff",
+    "chassisStyle": "normal"
+  },
+  "lore": "From the deepest, darkest part of the ocean comes a prehistoric shark so big it decided to grow wheels! Megalodon cruises the arena like it owns the place, and with those massive jaws painted on the front, it practically does. If you see a fin circling the track... it's already too late!"
+}

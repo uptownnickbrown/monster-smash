@@ -1,0 +1,34 @@
+{
+  "id": "earthshaker",
+  "name": "EarthShaker",
+  "tagline": "Ground Zero",
+  "rarity": "epic",
+  "stats": {
+    "smashDamage": 82,
+    "speed": 60,
+    "shield": 85,
+    "weight": 90,
+    "airTime": 63
+  },
+  "specialAbility": {
+    "name": "Earthquake",
+    "description": "EarthShaker slams the ground so hard it creates a massive earthquake that stuns the enemy and shakes the whole arena!",
+    "type": "stun",
+    "multiplier": 1.0,
+    "duration": 2,
+    "icon": "earthquake"
+  },
+  "visual": {
+    "bodyType": "pickup",
+    "primaryColor": "#8B4513",
+    "secondaryColor": "#DAA520",
+    "accentColor": "#5C3010",
+    "pattern": "tribal",
+    "patternColor": "#DAA520",
+    "wheelColor": "#3B2507",
+    "decals": [],
+    "glowColor": "#daa520",
+    "chassisStyle": "tall"
+  },
+  "lore": "EarthShaker was carved out of a mountain by a giant who needed a ride! This massive brown-and-gold beast weighs more than a house, and every time it lands a jump the ground cracks open. The tribal patterns on its armor are ancient symbols of power. When EarthShaker rolls, the WHOLE WORLD shakes!"
+}

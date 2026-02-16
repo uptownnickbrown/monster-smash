@@ -1,0 +1,34 @@
+{
+  "id": "wrecking-ball",
+  "name": "Wrecking Ball",
+  "tagline": "Smash Through Everything",
+  "rarity": "common",
+  "stats": {
+    "smashDamage": 65,
+    "speed": 40,
+    "shield": 50,
+    "weight": 75,
+    "airTime": 45
+  },
+  "specialAbility": {
+    "name": "Demolition",
+    "description": "Swings a giant wrecking ball that smashes right through shields like they're made of cardboard!",
+    "type": "pierce",
+    "multiplier": 0.5,
+    "duration": 1,
+    "icon": "wrecking-ball"
+  },
+  "visual": {
+    "bodyType": "muscle",
+    "primaryColor": "#ff6600",
+    "secondaryColor": "#333333",
+    "accentColor": "#ff8833",
+    "pattern": "none",
+    "patternColor": "#ff6600",
+    "wheelColor": "#222222",
+    "decals": [],
+    "glowColor": "#ff8833",
+    "chassisStyle": "normal"
+  },
+  "lore": "Built from the scraps of an old demolition yard, Wrecking Ball doesn't need fancy tricks — just pure smashing power! Its giant steel frame barrels through anything in its path, and when it swings its signature wrecking ball attack, even the toughest shields crumble like cookies!"
+}

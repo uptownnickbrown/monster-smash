@@ -1,0 +1,34 @@
+{
+  "id": "grave-digger",
+  "name": "Grave Digger",
+  "tagline": "Rest In Pieces",
+  "rarity": "legendary",
+  "stats": {
+    "smashDamage": 95,
+    "speed": 72,
+    "shield": 80,
+    "weight": 85,
+    "airTime": 68
+  },
+  "specialAbility": {
+    "name": "Graveyard Smash",
+    "description": "Grave Digger channels the power of a thousand tombstones to double its smash damage for one devastating hit!",
+    "type": "damage-boost",
+    "multiplier": 2.0,
+    "duration": 1,
+    "icon": "skull"
+  },
+  "visual": {
+    "bodyType": "panel-truck",
+    "primaryColor": "#1a1a1a",
+    "secondaryColor": "#00cc44",
+    "accentColor": "#7744aa",
+    "pattern": "flames",
+    "patternColor": "#00cc44",
+    "wheelColor": "#333333",
+    "decals": ["skull", "tombstone"],
+    "glowColor": "#00ff55",
+    "chassisStyle": "tall"
+  },
+  "lore": "Born in a spooky graveyard on a stormy night, Grave Digger rose from the mud with glowing green flames and a hunger for crushing everything in its path! They say if you listen closely, you can hear ghostly cheering every time it lands a massive jump. No truck in history has won more fans or smashed more cars!"
+}

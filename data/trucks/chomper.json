@@ -1,0 +1,34 @@
+{
+  "id": "chomper",
+  "name": "Chomper",
+  "tagline": "Bite First, Ask Later",
+  "rarity": "common",
+  "stats": {
+    "smashDamage": 60,
+    "speed": 50,
+    "shield": 40,
+    "weight": 70,
+    "airTime": 50
+  },
+  "specialAbility": {
+    "name": "Big Bite",
+    "description": "Opens its huge jaws and chomps down on the enemy, stealing their health to heal itself!",
+    "type": "steal",
+    "multiplier": 15,
+    "duration": 1,
+    "icon": "jaws"
+  },
+  "visual": {
+    "bodyType": "beast",
+    "primaryColor": "#ff9900",
+    "secondaryColor": "#663300",
+    "accentColor": "#ffaa33",
+    "pattern": "none",
+    "patternColor": "#ff9900",
+    "wheelColor": "#442200",
+    "decals": ["teeth", "eye"],
+    "glowColor": "#ffaa33",
+    "chassisStyle": "normal"
+  },
+  "lore": "Chomper is basically a giant mouth on wheels! With razor-sharp teeth painted across its massive front bumper and two glowing eyes on the hood, this beast looks like it wants to eat everything in sight — because it does! Every time it bites an opponent, it actually gets stronger. Nom nom nom!"
+}

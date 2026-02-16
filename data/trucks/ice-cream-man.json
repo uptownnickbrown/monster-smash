@@ -1,0 +1,34 @@
+{
+  "id": "ice-cream-man",
+  "name": "Ice Cream Man",
+  "tagline": "Served Cold",
+  "rarity": "common",
+  "stats": {
+    "smashDamage": 50,
+    "speed": 55,
+    "shield": 45,
+    "weight": 60,
+    "airTime": 55
+  },
+  "specialAbility": {
+    "name": "Brain Freeze",
+    "description": "Ice Cream Man launches a giant scoop of the coldest ice cream ever, freezing the enemy truck in its tracks!",
+    "type": "stun",
+    "multiplier": 1,
+    "duration": 1,
+    "icon": "ice-cream"
+  },
+  "visual": {
+    "bodyType": "panel-truck",
+    "primaryColor": "#ff99cc",
+    "secondaryColor": "#ffffff",
+    "accentColor": "#ffccee",
+    "pattern": "stripes",
+    "patternColor": "#ffffff",
+    "wheelColor": "#cc6699",
+    "decals": [],
+    "glowColor": "#ffaadd",
+    "chassisStyle": "normal"
+  },
+  "lore": "What happens when an ice cream truck gets monster truck tires and a turbo engine? You get Ice Cream Man! This pink-and-white smasher still plays that jingly music, but now it crushes cars instead of selling popsicles. One blast of its Brain Freeze and your truck is stuck like a Popsicle!"
+}

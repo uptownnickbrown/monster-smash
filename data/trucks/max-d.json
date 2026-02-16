@@ -1,0 +1,34 @@
+{
+  "id": "max-d",
+  "name": "Max-D",
+  "tagline": "Maximum Destruction",
+  "rarity": "legendary",
+  "stats": {
+    "smashDamage": 82,
+    "speed": 90,
+    "shield": 70,
+    "weight": 75,
+    "airTime": 78
+  },
+  "specialAbility": {
+    "name": "Maximum Overdrive",
+    "description": "Max-D kicks into overdrive, supercharging its engine to blast past opponents at mind-blowing speed!",
+    "type": "speed-boost",
+    "multiplier": 1.5,
+    "duration": 2,
+    "icon": "lightning"
+  },
+  "visual": {
+    "bodyType": "suv",
+    "primaryColor": "#c0c0c0",
+    "secondaryColor": "#ff6600",
+    "accentColor": "#ffaa00",
+    "pattern": "lightning",
+    "patternColor": "#ff6600",
+    "wheelColor": "#444444",
+    "decals": ["spoiler"],
+    "glowColor": "#ff8800",
+    "chassisStyle": "tall"
+  },
+  "lore": "Max-D was built by a mad scientist who wanted to create the fastest, most destructive machine ever! With its silver armor and blazing orange lightning bolts, Max-D flies higher, spins harder, and lands heavier than almost any truck alive. When you hear that engine roar, you better get out of the way!"
+}

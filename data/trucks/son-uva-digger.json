@@ -1,0 +1,34 @@
+{
+  "id": "son-uva-digger",
+  "name": "Son-uva Digger",
+  "tagline": "Like Father, Fiercer",
+  "rarity": "epic",
+  "stats": {
+    "smashDamage": 85,
+    "speed": 74,
+    "shield": 68,
+    "weight": 75,
+    "airTime": 68
+  },
+  "specialAbility": {
+    "name": "Legacy Power",
+    "description": "Son-uva Digger channels the legendary power of its father, supercharging its smash damage to terrifying levels!",
+    "type": "damage-boost",
+    "multiplier": 1.8,
+    "duration": 1,
+    "icon": "grave-cross"
+  },
+  "visual": {
+    "bodyType": "panel-truck",
+    "primaryColor": "#222222",
+    "secondaryColor": "#00ff44",
+    "accentColor": "#00aa22",
+    "pattern": "flames",
+    "patternColor": "#00ff44",
+    "wheelColor": "#111111",
+    "decals": ["skull", "tombstone"],
+    "glowColor": "#00ff44",
+    "chassisStyle": "tall"
+  },
+  "lore": "The son of the most famous monster truck ever built, Son-uva Digger has something to prove! With even brighter green flames and a meaner growl than its legendary parent, this truck fights twice as hard to make its own name. It carries the Digger family crest with pride and smashes with PURPOSE!"
+}

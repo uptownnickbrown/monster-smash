@@ -1,0 +1,64 @@
+/* ============================================
+   MONSTER SMASH - Battle Screen Styles
+   Power meter, ability button, damage effects
+   ============================================ */
+
+/* Power meter overlay (drawn on canvas, but container styling) */
+.battle-canvas-container {
+  position: relative;
+  background: #0a0a0f;
+}
+
+/* Instruction text overlay */
+.battle-instruction {
+  position: absolute;
+  top: 12%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-heading);
+  font-size: 18px;
+  color: var(--fire-yellow);
+  letter-spacing: 2px;
+  text-shadow: 0 0 15px var(--fire-yellow), 0 2px 4px rgba(0, 0, 0, 0.8);
+  pointer-events: none;
+  z-index: 5;
+  animation: subtitleFade 0.5s ease forwards;
+}
+
+/* VS splash */
+.vs-splash {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 15;
+  background: rgba(0, 0, 0, 0.8);
+  pointer-events: none;
+}
+
+.vs-splash__round {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--chrome-dark);
+  letter-spacing: 3px;
+  margin-bottom: 8px;
+}
+
+.vs-splash__names {
+  font-family: var(--font-heading);
+  font-size: clamp(24px, 4vw, 40px);
+  color: var(--chrome-bright);
+  letter-spacing: 2px;
+}
+
+.vs-splash__vs {
+  font-family: var(--font-display);
+  font-size: clamp(36px, 6vw, 56px);
+  background: linear-gradient(135deg, var(--fire-yellow), var(--fire-orange), var(--fire-red));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 4px 0;
+}

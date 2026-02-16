@@ -1,0 +1,34 @@
+{
+  "id": "zombie",
+  "name": "Zombie",
+  "tagline": "Never Stays Down",
+  "rarity": "epic",
+  "stats": {
+    "smashDamage": 72,
+    "speed": 68,
+    "shield": 82,
+    "weight": 78,
+    "airTime": 65
+  },
+  "specialAbility": {
+    "name": "Undead Rise",
+    "description": "Zombie uses creepy undead magic to repair its body, healing 30 HP like a truck that just won't quit!",
+    "type": "heal",
+    "multiplier": 30,
+    "duration": 1,
+    "icon": "zombie-hand"
+  },
+  "visual": {
+    "bodyType": "panel-truck",
+    "primaryColor": "#336633",
+    "secondaryColor": "#88cc44",
+    "accentColor": "#224422",
+    "pattern": "splatter",
+    "patternColor": "#88cc44",
+    "wheelColor": "#333333",
+    "decals": ["skull"],
+    "glowColor": "#66ff33",
+    "chassisStyle": "tall"
+  },
+  "lore": "You can smash it, crash it, and flatten it like a pancake, but Zombie always crawls back for more! Covered in slimy green splatter and held together with rusty bolts, this undead truck groans and growls as it drags itself across the arena. Just when you think you've won... ZOMBIE RISES AGAIN!"
+}

@@ -1,0 +1,34 @@
+{
+  "id": "venom-strike",
+  "name": "Venom Strike",
+  "tagline": "Toxic Takedown",
+  "rarity": "common",
+  "stats": {
+    "smashDamage": 55,
+    "speed": 55,
+    "shield": 50,
+    "weight": 60,
+    "airTime": 55
+  },
+  "specialAbility": {
+    "name": "Poison",
+    "description": "Venom Strike spits glowing green poison that burns the enemy truck for 10 damage over 3 turns!",
+    "type": "burn",
+    "multiplier": 10,
+    "duration": 3,
+    "icon": "snake"
+  },
+  "visual": {
+    "bodyType": "beast",
+    "primaryColor": "#330066",
+    "secondaryColor": "#00ff00",
+    "accentColor": "#66ff33",
+    "pattern": "splatter",
+    "patternColor": "#00ff00",
+    "wheelColor": "#220044",
+    "decals": ["teeth", "eye"],
+    "glowColor": "#00ff00",
+    "chassisStyle": "low"
+  },
+  "lore": "Venom Strike slithered out of a toxic swamp covered in glowing green slime and with fangs dripping poison! This dark purple nightmare has snake eyes on its hood and leaves a trail of green goo wherever it goes. Get hit by its Poison attack and you will be melting for turns!"
+}

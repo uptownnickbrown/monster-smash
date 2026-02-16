@@ -1,0 +1,34 @@
+{
+  "id": "gold-rush",
+  "name": "Gold Rush",
+  "tagline": "Feeling Lucky, Punk?",
+  "rarity": "rare",
+  "stats": {
+    "smashDamage": 60,
+    "speed": 65,
+    "shield": 55,
+    "weight": 70,
+    "airTime": 70
+  },
+  "specialAbility": {
+    "name": "Lucky Strike",
+    "description": "Spins a giant golden wheel of fortune — you might get a tiny hit or you might get a MEGA BLAST! Anything between 20 and 80 damage!",
+    "type": "random",
+    "multiplier": 1,
+    "duration": 1,
+    "icon": "dice"
+  },
+  "visual": {
+    "bodyType": "pickup",
+    "primaryColor": "#DAA520",
+    "secondaryColor": "#8B6914",
+    "accentColor": "#ffcc00",
+    "pattern": "stars",
+    "patternColor": "#FFDD44",
+    "wheelColor": "#6B4914",
+    "decals": ["flag"],
+    "glowColor": "#ffcc00",
+    "chassisStyle": "normal"
+  },
+  "lore": "Gold Rush was discovered buried in an old gold mine, covered in real gold nuggets! This shiny truck sparkles so bright you need sunglasses just to look at it. Its Lucky Strike attack works like a slot machine — sometimes you hit the jackpot and do INSANE damage, and sometimes you get a dud. But that's what makes it so exciting! Every single hit is a surprise!"
+}

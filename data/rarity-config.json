@@ -1,0 +1,34 @@
+{
+  "common": {
+    "color": "#8a8d96",
+    "glowColor": "#888888",
+    "label": "COMMON",
+    "borderStyle": "solid",
+    "statRange": [250, 300],
+    "cardBg": "linear-gradient(135deg, #2a2a32 0%, #1a1a22 100%)"
+  },
+  "rare": {
+    "color": "#4488ff",
+    "glowColor": "#2266dd",
+    "label": "RARE",
+    "borderStyle": "solid",
+    "statRange": [300, 350],
+    "cardBg": "linear-gradient(135deg, #1a2a44 0%, #0d1a33 100%)"
+  },
+  "epic": {
+    "color": "#b44aff",
+    "glowColor": "#8822dd",
+    "label": "EPIC",
+    "borderStyle": "double",
+    "statRange": [350, 400],
+    "cardBg": "linear-gradient(135deg, #2a1a44 0%, #1a0d33 100%)"
+  },
+  "legendary": {
+    "color": "#ffaa00",
+    "glowColor": "#ff8800",
+    "label": "LEGENDARY",
+    "borderStyle": "double",
+    "statRange": [380, 425],
+    "cardBg": "linear-gradient(135deg, #3a2a10 0%, #2a1a00 100%)"
+  }
+}

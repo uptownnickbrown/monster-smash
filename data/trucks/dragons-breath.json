@@ -1,0 +1,34 @@
+{
+  "id": "dragons-breath",
+  "name": "Dragon's Breath",
+  "tagline": "Born In Fire",
+  "rarity": "epic",
+  "stats": {
+    "smashDamage": 85,
+    "speed": 70,
+    "shield": 72,
+    "weight": 80,
+    "airTime": 68
+  },
+  "specialAbility": {
+    "name": "Fire Breath",
+    "description": "Dragon's Breath unleashes a scorching blast of fire that keeps burning the enemy for 10 damage each turn!",
+    "type": "burn",
+    "multiplier": 10,
+    "duration": 3,
+    "icon": "fire"
+  },
+  "visual": {
+    "bodyType": "beast",
+    "primaryColor": "#cc3300",
+    "secondaryColor": "#ff6600",
+    "accentColor": "#ffaa00",
+    "pattern": "flames",
+    "patternColor": "#ff6600",
+    "wheelColor": "#442200",
+    "decals": ["teeth", "exhaust", "wings"],
+    "glowColor": "#ff4400",
+    "chassisStyle": "tall"
+  },
+  "lore": "Forged in the heart of a volcano by an ancient dragon, this truck breathes REAL FIRE! Its dark red scales shimmer in the heat, and its exhaust pipes glow white-hot before every attack. Other trucks can feel the heat from across the arena. When Dragon's Breath rolls in, the temperature goes WAY up!"
+}

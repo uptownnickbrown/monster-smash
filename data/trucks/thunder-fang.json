@@ -1,0 +1,34 @@
+{
+  "id": "thunder-fang",
+  "name": "Thunder Fang",
+  "tagline": "Shockingly Fierce",
+  "rarity": "common",
+  "stats": {
+    "smashDamage": 55,
+    "speed": 60,
+    "shield": 40,
+    "weight": 50,
+    "airTime": 55
+  },
+  "specialAbility": {
+    "name": "Static Shock",
+    "description": "Thunder Fang charges up its electric fangs and zaps the enemy with a crackling bolt of lightning!",
+    "type": "direct-damage",
+    "multiplier": 15,
+    "duration": 1,
+    "icon": "lightning"
+  },
+  "visual": {
+    "bodyType": "muscle",
+    "primaryColor": "#ffcc00",
+    "secondaryColor": "#ff6600",
+    "accentColor": "#ffdd44",
+    "pattern": "lightning",
+    "patternColor": "#ff6600",
+    "wheelColor": "#443300",
+    "decals": ["teeth"],
+    "glowColor": "#ffdd33",
+    "chassisStyle": "low"
+  },
+  "lore": "During the wildest thunderstorm anyone had ever seen, a bolt of lightning struck the junkyard and Thunder Fang was born! This yellow-and-orange beast has electric fangs on its grill and lightning bolts crackling across its body. Touch it and you will get the shock of your life!"
+}

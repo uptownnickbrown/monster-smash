@@ -1,0 +1,34 @@
+{
+  "id": "arctic-wolf",
+  "name": "Arctic Wolf",
+  "tagline": "The Pack Attacks",
+  "rarity": "rare",
+  "stats": {
+    "smashDamage": 65,
+    "speed": 70,
+    "shield": 60,
+    "weight": 65,
+    "airTime": 75
+  },
+  "specialAbility": {
+    "name": "Pack Hunt",
+    "description": "Howls and summons two ghost wolves that charge in for bonus attacks, each hitting for half damage!",
+    "type": "multi-hit",
+    "multiplier": 0.5,
+    "duration": 1,
+    "icon": "wolf"
+  },
+  "visual": {
+    "bodyType": "muscle",
+    "primaryColor": "#dddddd",
+    "secondaryColor": "#4488cc",
+    "accentColor": "#88bbff",
+    "pattern": "tribal",
+    "patternColor": "#5599dd",
+    "wheelColor": "#336699",
+    "decals": ["teeth"],
+    "glowColor": "#88bbff",
+    "chassisStyle": "normal"
+  },
+  "lore": "Arctic Wolf comes howling out of a frozen blizzard, its icy white body covered in cool blue tribal wolf markings! It's fast, it's fierce, and it never hunts alone. When it activates Pack Hunt, two glowing ice-blue ghost wolves burst out from behind it and all three attack at once — WHAM WHAM WHAM! Three hits for the price of one! The pack always wins!"
+}

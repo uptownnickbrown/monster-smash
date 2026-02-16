@@ -1,0 +1,86 @@
+{
+  "damage-boost": {
+    "label": "Damage Boost",
+    "description": "Multiplies the next hit's damage",
+    "icon": "💥",
+    "color": "#ff2d2d",
+    "effectType": "buff-self"
+  },
+  "direct-damage": {
+    "label": "Direct Damage",
+    "description": "Deals immediate damage to the enemy",
+    "icon": "⚡",
+    "color": "#ff6b1a",
+    "effectType": "attack"
+  },
+  "heal": {
+    "label": "Heal",
+    "description": "Restores HP to your truck",
+    "icon": "💚",
+    "color": "#39ff14",
+    "effectType": "buff-self"
+  },
+  "shield-boost": {
+    "label": "Shield Boost",
+    "description": "Temporarily increases shield power",
+    "icon": "🛡️",
+    "color": "#4488ff",
+    "effectType": "buff-self"
+  },
+  "speed-boost": {
+    "label": "Speed Boost",
+    "description": "Temporarily increases speed",
+    "icon": "🚀",
+    "color": "#ffd21a",
+    "effectType": "buff-self"
+  },
+  "stun": {
+    "label": "Stun",
+    "description": "Enemy attacks at reduced power next turn",
+    "icon": "⚡",
+    "color": "#00d4ff",
+    "effectType": "debuff-enemy"
+  },
+  "burn": {
+    "label": "Burn",
+    "description": "Deals damage over time each turn",
+    "icon": "🔥",
+    "color": "#ff6b1a",
+    "effectType": "debuff-enemy"
+  },
+  "pierce": {
+    "label": "Pierce",
+    "description": "Ignores a portion of enemy shield",
+    "icon": "🗡️",
+    "color": "#ff2d8a",
+    "effectType": "buff-self"
+  },
+  "multi-hit": {
+    "label": "Multi-Hit",
+    "description": "Splits one attack into multiple hits",
+    "icon": "💫",
+    "color": "#b44aff",
+    "effectType": "attack"
+  },
+  "dodge": {
+    "label": "Dodge",
+    "description": "Avoid the next incoming attack",
+    "icon": "👻",
+    "color": "#8844cc",
+    "effectType": "buff-self"
+  },
+  "steal": {
+    "label": "Steal",
+    "description": "Deal damage and heal the same amount",
+    "icon": "🦷",
+    "color": "#ff9900",
+    "effectType": "attack"
+  },
+  "random": {
+    "label": "Wild Card",
+    "description": "Random effect with variable outcome",
+    "icon": "🎲",
+    "color": "#ffaa00",
+    "effectType": "attack"
+  }
+}

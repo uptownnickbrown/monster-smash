@@ -1,0 +1,34 @@
+{
+  "id": "jurassic-attack",
+  "name": "Jurassic Attack",
+  "tagline": "Unleash The Beast",
+  "rarity": "rare",
+  "stats": {
+    "smashDamage": 75,
+    "speed": 55,
+    "shield": 65,
+    "weight": 80,
+    "airTime": 50
+  },
+  "specialAbility": {
+    "name": "Dino Chomp",
+    "description": "Jurassic Attack opens its massive T-Rex jaws and takes a giant bite out of the competition!",
+    "type": "direct-damage",
+    "multiplier": 25,
+    "duration": 1,
+    "icon": "dinosaur"
+  },
+  "visual": {
+    "bodyType": "beast",
+    "primaryColor": "#336600",
+    "secondaryColor": "#669900",
+    "accentColor": "#88bb00",
+    "pattern": "scales",
+    "patternColor": "#669900",
+    "wheelColor": "#333333",
+    "decals": ["teeth", "eye"],
+    "glowColor": "#66aa00",
+    "chassisStyle": "tall"
+  },
+  "lore": "Deep in a prehistoric jungle, scientists found a real T-Rex fossil — and built a monster truck around it! Jurassic Attack has actual dinosaur teeth on its bumper, scaly green armor, and a roar so loud it shakes the whole arena. When it chomps down, even the toughest trucks run for cover!"
+}

@@ -1,0 +1,354 @@
+/* ============================================
+   MONSTER SMASH - Global Styles
+   Aesthetic: Stadium lights + chrome + dirt + fire
+   ============================================ */
+
+:root {
+  /* Core palette - monster truck rally energy */
+  --bg-abyss: #0a0a0f;
+  --bg-dark: #111118;
+  --bg-surface: #1a1a24;
+  --bg-elevated: #242430;
+
+  /* Fire spectrum */
+  --fire-red: #ff2d2d;
+  --fire-orange: #ff6b1a;
+  --fire-yellow: #ffd21a;
+  --fire-white: #fff8e0;
+
+  /* Chrome & metal */
+  --chrome: #c8cad0;
+  --chrome-bright: #e8eaef;
+  --chrome-dark: #6a6c74;
+  --steel: #3a3c44;
+
+  /* Neon accents */
+  --neon-green: #39ff14;
+  --neon-blue: #00d4ff;
+  --neon-pink: #ff2d8a;
+  --neon-purple: #b44aff;
+
+  /* Rarity colors */
+  --rarity-common: #8a8d96;
+  --rarity-rare: #4488ff;
+  --rarity-epic: #b44aff;
+  --rarity-legendary: #ffaa00;
+
+  /* Dirt & ground */
+  --dirt: #5c3d1a;
+  --dirt-light: #8b6538;
+  --mud: #3d2810;
+
+  /* Typography */
+  --font-display: 'Bungee Shade', 'Impact', sans-serif;
+  --font-heading: 'Bangers', 'Impact', sans-serif;
+  --font-body: 'Russo One', 'Arial Black', sans-serif;
+  --font-accent: 'Permanent Marker', cursive;
+
+  /* Sizing */
+  --touch-min: 44px;
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+
+  /* Shadows */
+  --shadow-glow: 0 0 30px rgba(255, 107, 26, 0.3);
+  --shadow-fire: 0 0 40px rgba(255, 45, 45, 0.4), 0 0 80px rgba(255, 107, 26, 0.2);
+  --shadow-neon: 0 0 20px rgba(57, 255, 20, 0.3);
+  --shadow-deep: 0 8px 32px rgba(0, 0, 0, 0.6);
+}
+
+/* ---- Reset & Base ---- */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg-abyss);
+  color: var(--chrome-bright);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+/* ---- Game Container ---- */
+#game {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: var(--bg-abyss);
+}
+
+/* ---- Screen base ---- */
+.screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.screen.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ---- Landscape-only rotation overlay ---- */
+#rotate-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: var(--bg-abyss);
+  align-items: center;
+  justify-content: center;
+}
+
+@media (orientation: portrait) {
+  #rotate-overlay {
+    display: flex;
+  }
+  #game {
+    display: none;
+  }
+}
+
+.rotate-content {
+  text-align: center;
+  color: var(--fire-orange);
+  font-family: var(--font-heading);
+}
+
+.rotate-truck {
+  font-size: 80px;
+  animation: rotateWobble 2s ease-in-out infinite;
+}
+
+.rotate-content p {
+  font-size: 28px;
+  letter-spacing: 3px;
+  margin: 20px 0;
+  text-shadow: 0 0 20px var(--fire-orange);
+}
+
+.rotate-arrow {
+  font-size: 48px;
+  animation: spin 2s linear infinite;
+}
+
+@keyframes rotateWobble {
+  0%, 100% { transform: rotate(-10deg); }
+  50% { transform: rotate(10deg); }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ---- Stadium background (used by multiple screens) ---- */
+.stadium-bg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background:
+    /* Spotlight cones from above */
+    radial-gradient(ellipse 300px 600px at 20% -10%, rgba(255, 210, 26, 0.08) 0%, transparent 70%),
+    radial-gradient(ellipse 300px 600px at 50% -10%, rgba(255, 255, 255, 0.06) 0%, transparent 70%),
+    radial-gradient(ellipse 300px 600px at 80% -10%, rgba(255, 210, 26, 0.08) 0%, transparent 70%),
+    /* Ambient glow from below (dirt/arena) */
+    radial-gradient(ellipse 100% 40% at 50% 110%, rgba(92, 61, 26, 0.3) 0%, transparent 70%),
+    /* Base dark */
+    var(--bg-abyss);
+}
+
+/* Animated dust particles - pure CSS */
+.stadium-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(1px 1px at 10% 20%, rgba(255, 210, 26, 0.6) 0%, transparent 100%),
+    radial-gradient(1px 1px at 30% 60%, rgba(255, 107, 26, 0.4) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 55% 15%, rgba(255, 255, 255, 0.5) 0%, transparent 100%),
+    radial-gradient(1px 1px at 70% 45%, rgba(255, 210, 26, 0.5) 0%, transparent 100%),
+    radial-gradient(1px 1px at 85% 75%, rgba(255, 107, 26, 0.4) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 15% 80%, rgba(255, 255, 255, 0.3) 0%, transparent 100%),
+    radial-gradient(1px 1px at 45% 40%, rgba(255, 210, 26, 0.4) 0%, transparent 100%),
+    radial-gradient(1px 1px at 90% 25%, rgba(255, 45, 45, 0.3) 0%, transparent 100%);
+  animation: dustFloat 20s linear infinite;
+}
+
+@keyframes dustFloat {
+  0% { transform: translateY(0) translateX(0); }
+  25% { transform: translateY(-10px) translateX(5px); }
+  50% { transform: translateY(-5px) translateX(-3px); }
+  75% { transform: translateY(-15px) translateX(8px); }
+  100% { transform: translateY(0) translateX(0); }
+}
+
+/* Dirt ground strip */
+.ground-strip {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 15%;
+  background:
+    linear-gradient(0deg,
+      var(--mud) 0%,
+      var(--dirt) 40%,
+      var(--dirt-light) 70%,
+      transparent 100%
+    );
+}
+
+.ground-strip::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    var(--fire-orange) 20%,
+    var(--fire-yellow) 50%,
+    var(--fire-orange) 80%,
+    transparent 100%
+  );
+  opacity: 0.6;
+}
+
+/* ---- Buttons ---- */
+.btn {
+  font-family: var(--font-heading);
+  font-size: 24px;
+  letter-spacing: 2px;
+  padding: 16px 48px;
+  border: none;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  touch-action: manipulation;
+  min-height: var(--touch-min);
+  min-width: var(--touch-min);
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn:active {
+  transform: scale(0.95);
+}
+
+.btn-fire {
+  background: linear-gradient(135deg, var(--fire-red) 0%, var(--fire-orange) 50%, var(--fire-yellow) 100%);
+  color: #fff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  box-shadow:
+    var(--shadow-fire),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.btn-fire:active {
+  box-shadow:
+    0 0 20px rgba(255, 45, 45, 0.6),
+    0 0 60px rgba(255, 107, 26, 0.3),
+    inset 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Chrome shimmer on buttons */
+.btn-fire::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.15) 45%,
+    rgba(255, 255, 255, 0.25) 50%,
+    rgba(255, 255, 255, 0.15) 55%,
+    transparent 60%
+  );
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%) rotate(45deg); }
+  100% { transform: translateX(100%) rotate(45deg); }
+}
+
+.btn-chrome {
+  background: linear-gradient(180deg, var(--chrome-bright) 0%, var(--chrome) 40%, var(--chrome-dark) 100%);
+  color: var(--bg-dark);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+}
+
+/* ---- Utility classes ---- */
+.text-fire {
+  background: linear-gradient(135deg, var(--fire-red), var(--fire-orange), var(--fire-yellow));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-chrome {
+  background: linear-gradient(180deg, #fff 0%, var(--chrome) 50%, var(--chrome-dark) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-glow {
+  text-shadow:
+    0 0 10px currentColor,
+    0 0 20px currentColor,
+    0 0 40px currentColor;
+}
+
+/* ---- Canvas (for battle screens) ---- */
+canvas.battle-canvas {
+  display: block;
+  touch-action: none;
+}
+
+/* ---- Scrollable areas ---- */
+.scroll-area {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--steel) var(--bg-dark);
+}
+
+.scroll-area::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scroll-area::-webkit-scrollbar-track {
+  background: var(--bg-dark);
+}
+
+.scroll-area::-webkit-scrollbar-thumb {
+  background: var(--steel);
+  border-radius: 3px;
+}

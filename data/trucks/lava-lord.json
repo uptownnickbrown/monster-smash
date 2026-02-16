@@ -1,0 +1,34 @@
+{
+  "id": "lava-lord",
+  "name": "Lava Lord",
+  "tagline": "Rule By Fire",
+  "rarity": "rare",
+  "stats": {
+    "smashDamage": 75,
+    "speed": 60,
+    "shield": 55,
+    "weight": 75,
+    "airTime": 65
+  },
+  "specialAbility": {
+    "name": "Eruption",
+    "description": "The volcano on its back erupts with a massive explosion of lava, raining fiery rocks down on the enemy!",
+    "type": "direct-damage",
+    "multiplier": 40,
+    "duration": 1,
+    "icon": "volcano"
+  },
+  "visual": {
+    "bodyType": "beast",
+    "primaryColor": "#cc2200",
+    "secondaryColor": "#ff6600",
+    "accentColor": "#ff4400",
+    "pattern": "flames",
+    "patternColor": "#ff3300",
+    "wheelColor": "#441100",
+    "decals": ["teeth"],
+    "glowColor": "#ff4400",
+    "chassisStyle": "tall"
+  },
+  "lore": "Lava Lord rules over a secret volcano hidden deep underground, and it drove straight up through the crater to enter the arena! Glowing rivers of lava flow through cracks in its fiery red body, and its teeth-covered bumper drips with molten metal. When it unleashes Eruption, a mini volcano blasts out of its back and launches flaming boulders everywhere. It's like the world's most awesome fireworks show — except way more dangerous!"
+}

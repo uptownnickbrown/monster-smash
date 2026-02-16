@@ -1,0 +1,34 @@
+{
+  "id": "cosmic-crusher",
+  "name": "Cosmic Crusher",
+  "tagline": "Strike From The Stars",
+  "rarity": "epic",
+  "stats": {
+    "smashDamage": 80,
+    "speed": 70,
+    "shield": 65,
+    "weight": 75,
+    "airTime": 75
+  },
+  "specialAbility": {
+    "name": "Meteor Strike",
+    "description": "Calls down a giant flaming meteor from outer space that slams into the enemy for massive damage!",
+    "type": "direct-damage",
+    "multiplier": 50,
+    "duration": 1,
+    "icon": "meteor"
+  },
+  "visual": {
+    "bodyType": "suv",
+    "primaryColor": "#220044",
+    "secondaryColor": "#cc66ff",
+    "accentColor": "#cc66ff",
+    "pattern": "stars",
+    "patternColor": "#aa44dd",
+    "wheelColor": "#330066",
+    "decals": [],
+    "glowColor": "#cc66ff",
+    "chassisStyle": "tall"
+  },
+  "lore": "Cosmic Crusher was built on an asteroid hurtling through space and rocketed down to Earth just to compete in the monster truck arena! Its deep purple body sparkles with distant stars, and when it calls down a Meteor Strike, a real-deal flaming space rock comes screaming out of the sky and KABOOM — nothing but a smoking crater where the enemy used to be!"
+}

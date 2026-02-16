@@ -1,0 +1,34 @@
+{
+  "id": "bakugan-dragonoid",
+  "name": "Bakugan Dragonoid",
+  "tagline": "Dragon Fire Fury",
+  "rarity": "rare",
+  "stats": {
+    "smashDamage": 72,
+    "speed": 60,
+    "shield": 58,
+    "weight": 70,
+    "airTime": 60
+  },
+  "specialAbility": {
+    "name": "Dragon Fire",
+    "description": "Bakugan Dragonoid spreads its wings and blasts a scorching fireball straight at the enemy truck!",
+    "type": "direct-damage",
+    "multiplier": 30,
+    "duration": 1,
+    "icon": "dragon"
+  },
+  "visual": {
+    "bodyType": "beast",
+    "primaryColor": "#cc3300",
+    "secondaryColor": "#ff9900",
+    "accentColor": "#ffcc00",
+    "pattern": "scales",
+    "patternColor": "#ff9900",
+    "wheelColor": "#331100",
+    "decals": ["wings"],
+    "glowColor": "#ff6600",
+    "chassisStyle": "tall"
+  },
+  "lore": "When a legendary Bakugan card landed on a monster truck rally, the truck it touched transformed into a fire-breathing dragon on wheels! Bakugan Dragonoid has real dragon wings on its sides, glowing orange scales, and can shoot fireballs from its hood. It rolls into battle like a boss!"
+}

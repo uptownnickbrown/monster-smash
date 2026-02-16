@@ -1,0 +1,34 @@
+{
+  "id": "pirates-curse",
+  "name": "Pirate's Curse",
+  "tagline": "Plunder And Crush",
+  "rarity": "rare",
+  "stats": {
+    "smashDamage": 78,
+    "speed": 58,
+    "shield": 72,
+    "weight": 75,
+    "airTime": 57
+  },
+  "specialAbility": {
+    "name": "Cannon Fire",
+    "description": "Pirate's Curse loads up its twin pirate cannons and blasts a massive cannonball right at the enemy!",
+    "type": "direct-damage",
+    "multiplier": 40,
+    "duration": 1,
+    "icon": "cannon"
+  },
+  "visual": {
+    "bodyType": "beast",
+    "primaryColor": "#333333",
+    "secondaryColor": "#cc0000",
+    "accentColor": "#ffcc00",
+    "pattern": "bones",
+    "patternColor": "#ffffff",
+    "wheelColor": "#222222",
+    "decals": ["skull", "flag"],
+    "glowColor": "#cc0000",
+    "chassisStyle": "tall"
+  },
+  "lore": "Legends say Pirate's Curse was built from the wreckage of a haunted pirate ship that washed ashore during a hurricane! It has a skull and crossbones on the hood, real cannons on the sides, and a tattered pirate flag on top. When those cannons fire, BOOM — the enemy goes flying!"
+}

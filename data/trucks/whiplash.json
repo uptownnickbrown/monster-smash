@@ -1,0 +1,34 @@
+{
+  "id": "whiplash",
+  "name": "Whiplash",
+  "tagline": "Rope And Ride",
+  "rarity": "rare",
+  "stats": {
+    "smashDamage": 60,
+    "speed": 72,
+    "shield": 55,
+    "weight": 58,
+    "airTime": 65
+  },
+  "specialAbility": {
+    "name": "Lasso Grab",
+    "description": "Whiplash swings a giant lasso to catch the enemy, yanking them off balance and boosting its own speed to zoom past!",
+    "type": "speed-boost",
+    "multiplier": 1.4,
+    "duration": 2,
+    "icon": "lasso"
+  },
+  "visual": {
+    "bodyType": "pickup",
+    "primaryColor": "#ffcc00",
+    "secondaryColor": "#8B4513",
+    "accentColor": "#cc9900",
+    "pattern": "tribal",
+    "patternColor": "#8B4513",
+    "wheelColor": "#5C3010",
+    "decals": ["horns"],
+    "glowColor": "#ffcc00",
+    "chassisStyle": "normal"
+  },
+  "lore": "Yeehaw! Whiplash is the rootin'-tootinest cowboy truck in the whole arena! With golden paint that shines like a sheriff's badge and big ol' longhorns on the hood, Whiplash rounds up the competition like cattle. Its famous Lasso Grab can yank a truck clean off its wheels. Ride 'em, cowboy!"
+}

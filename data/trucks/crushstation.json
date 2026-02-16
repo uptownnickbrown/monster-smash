@@ -1,0 +1,34 @@
+{
+  "id": "crushstation",
+  "name": "Crushstation",
+  "tagline": "Claw Of Doom",
+  "rarity": "common",
+  "stats": {
+    "smashDamage": 65,
+    "speed": 50,
+    "shield": 55,
+    "weight": 65,
+    "airTime": 45
+  },
+  "specialAbility": {
+    "name": "Claw Grab",
+    "description": "Crushstation snaps its giant lobster claws together for a bone-crunching power-up that boosts its next smash!",
+    "type": "damage-boost",
+    "multiplier": 1.5,
+    "duration": 1,
+    "icon": "claw"
+  },
+  "visual": {
+    "bodyType": "beast",
+    "primaryColor": "#cc0000",
+    "secondaryColor": "#ffffff",
+    "accentColor": "#ff3333",
+    "pattern": "none",
+    "patternColor": "#cc0000",
+    "wheelColor": "#440000",
+    "decals": ["teeth"],
+    "glowColor": "#ff3333",
+    "chassisStyle": "tall"
+  },
+  "lore": "Part monster truck, part giant lobster, ALL awesome! Crushstation crawled out of the ocean with massive red claws, beady eyes, and an appetite for destruction. Its claws are so strong they can crunch through a school bus like a breadstick. When it grabs you, there is NO escape!"
+}

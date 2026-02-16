@@ -1,0 +1,34 @@
+{
+  "id": "scooby-doo",
+  "name": "Scooby-Doo",
+  "tagline": "Ruh-Roh Rampage",
+  "rarity": "common",
+  "stats": {
+    "smashDamage": 45,
+    "speed": 60,
+    "shield": 50,
+    "weight": 55,
+    "airTime": 60
+  },
+  "specialAbility": {
+    "name": "Scooby Snack",
+    "description": "Scooby scarfs down a magical Scooby Snack and gets a burst of bravery that heals the truck right up!",
+    "type": "heal",
+    "multiplier": 20,
+    "duration": 1,
+    "icon": "bone"
+  },
+  "visual": {
+    "bodyType": "buggy",
+    "primaryColor": "#33cc66",
+    "secondaryColor": "#66ff99",
+    "accentColor": "#99ffbb",
+    "pattern": "splatter",
+    "patternColor": "#66ff99",
+    "wheelColor": "#226633",
+    "decals": [],
+    "glowColor": "#66ff99",
+    "chassisStyle": "normal"
+  },
+  "lore": "Zoinks! The Mystery Machine got a mega monster truck makeover! Scooby-Doo rolls into the arena with bright green splatter paint and a wagging tail antenna. It might look a little scared at first, but toss it a Scooby Snack and watch it go full beast mode. Mystery solved: this truck rules!"
+}

@@ -1,0 +1,34 @@
+{
+  "id": "shadow-phantom",
+  "name": "Shadow Phantom",
+  "tagline": "Now You See Me...",
+  "rarity": "epic",
+  "stats": {
+    "smashDamage": 75,
+    "speed": 80,
+    "shield": 55,
+    "weight": 70,
+    "airTime": 80
+  },
+  "specialAbility": {
+    "name": "Phase Shift",
+    "description": "Turns completely invisible and phases into another dimension — the next enemy attack passes right through like it's a ghost!",
+    "type": "dodge",
+    "multiplier": 1,
+    "duration": 1,
+    "icon": "ghost"
+  },
+  "visual": {
+    "bodyType": "suv",
+    "primaryColor": "#111111",
+    "secondaryColor": "#663399",
+    "accentColor": "#8844cc",
+    "pattern": "tribal",
+    "patternColor": "#552288",
+    "wheelColor": "#1a0033",
+    "decals": ["eye"],
+    "glowColor": "#8844cc",
+    "chassisStyle": "normal"
+  },
+  "lore": "Nobody knows where Shadow Phantom came from because nobody has ever actually gotten a good look at it! This spooky truck is almost invisible in the dark, with ghostly purple tribal markings that seem to float in midair. When it activates Phase Shift, it disappears completely — you can hear its engine rumbling but the enemy's attack goes right through empty air. Creepy cool!"
+}

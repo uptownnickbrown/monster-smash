@@ -1,0 +1,34 @@
+{
+  "id": "sparkle-smash",
+  "name": "Sparkle Smash",
+  "tagline": "Glitter And Grit",
+  "rarity": "epic",
+  "stats": {
+    "smashDamage": 78,
+    "speed": 74,
+    "shield": 68,
+    "weight": 65,
+    "airTime": 75
+  },
+  "specialAbility": {
+    "name": "Unicorn Blast",
+    "description": "Sparkle Smash fires a dazzling rainbow beam that explodes into a shower of glitter and raw power!",
+    "type": "direct-damage",
+    "multiplier": 40,
+    "duration": 1,
+    "icon": "unicorn"
+  },
+  "visual": {
+    "bodyType": "muscle",
+    "primaryColor": "#ff66cc",
+    "secondaryColor": "#cc44ff",
+    "accentColor": "#ffaaee",
+    "pattern": "stars",
+    "patternColor": "#cc44ff",
+    "wheelColor": "#aa33cc",
+    "decals": [],
+    "glowColor": "#ff88ee",
+    "chassisStyle": "normal"
+  },
+  "lore": "Don't let the sparkles fool you -- Sparkle Smash hits like a meteor wrapped in a rainbow! This pink-and-purple powerhouse leaves a trail of glitter everywhere it goes, and its Unicorn Blast has sent more trucks flying than a tornado. Pretty on the outside, FIERCE on the inside!"
+}

@@ -1,0 +1,34 @@
+{
+  "id": "avenger",
+  "name": "Avenger",
+  "tagline": "Justice Has Wheels",
+  "rarity": "rare",
+  "stats": {
+    "smashDamage": 72,
+    "speed": 65,
+    "shield": 68,
+    "weight": 62,
+    "airTime": 58
+  },
+  "specialAbility": {
+    "name": "Justice Strike",
+    "description": "Avenger powers up with the force of justice, boosting its smash damage to punish any truck that dares to fight dirty!",
+    "type": "damage-boost",
+    "multiplier": 1.5,
+    "duration": 1,
+    "icon": "shield-star"
+  },
+  "visual": {
+    "bodyType": "muscle",
+    "primaryColor": "#cc0000",
+    "secondaryColor": "#ffffff",
+    "accentColor": "#0044aa",
+    "pattern": "stripes",
+    "patternColor": "#ffffff",
+    "wheelColor": "#333333",
+    "decals": ["flag"],
+    "glowColor": "#ff4444",
+    "chassisStyle": "normal"
+  },
+  "lore": "When the arena needs a hero, Avenger answers the call! Decked out in bold red, white, and blue, this patriotic powerhouse fights for the little trucks and never backs down from a bully. Its Justice Strike has saved countless matches, and the crowd always goes wild when those red-white-and-blue stripes come roaring onto the track!"
+}

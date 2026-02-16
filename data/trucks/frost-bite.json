@@ -1,0 +1,34 @@
+{
+  "id": "frost-bite",
+  "name": "Frost Bite",
+  "tagline": "Cold As Ice",
+  "rarity": "common",
+  "stats": {
+    "smashDamage": 50,
+    "speed": 45,
+    "shield": 55,
+    "weight": 55,
+    "airTime": 50
+  },
+  "specialAbility": {
+    "name": "Deep Freeze",
+    "description": "Frost Bite blasts a wave of arctic cold that freezes the enemy truck solid so it cannot move!",
+    "type": "stun",
+    "multiplier": 1,
+    "duration": 1,
+    "icon": "snowflake"
+  },
+  "visual": {
+    "bodyType": "pickup",
+    "primaryColor": "#aaddff",
+    "secondaryColor": "#ffffff",
+    "accentColor": "#cceeff",
+    "pattern": "none",
+    "patternColor": "#aaddff",
+    "wheelColor": "#6699bb",
+    "decals": ["teeth"],
+    "glowColor": "#ccddff",
+    "chassisStyle": "normal"
+  },
+  "lore": "Frost Bite was found frozen in a glacier by arctic explorers and when they thawed it out, it came roaring to life! This icy blue truck has frost covering its whole body, icicle teeth on the bumper, and an engine that runs on pure cold. One blast of Deep Freeze and your truck turns into an ice cube!"
+}

@@ -1,0 +1,34 @@
+{
+  "id": "henrys-hammer",
+  "name": "Henry's Hammer",
+  "tagline": "Henry's Ultimate Ride",
+  "rarity": "legendary",
+  "stats": {
+    "smashDamage": 95,
+    "speed": 80,
+    "shield": 75,
+    "weight": 85,
+    "airTime": 80
+  },
+  "specialAbility": {
+    "name": "Hammer Time",
+    "description": "Henry pulls the ultimate lever and unleashes TRIPLE DAMAGE — the most powerful single hit in the entire game! Nothing can stop Hammer Time!",
+    "type": "damage-boost",
+    "multiplier": 3,
+    "duration": 1,
+    "icon": "hammer"
+  },
+  "visual": {
+    "bodyType": "muscle",
+    "primaryColor": "#0044cc",
+    "secondaryColor": "#ffcc00",
+    "accentColor": "#4488ff",
+    "pattern": "lightning",
+    "patternColor": "#ffdd44",
+    "wheelColor": "#003399",
+    "decals": ["skull", "spoiler"],
+    "glowColor": "#4488ff",
+    "chassisStyle": "tall"
+  },
+  "lore": "Legend says a kid named Henry once dreamed of the ultimate monster truck — one so powerful it could smash every single truck in the arena with one mighty blow. When he woke up, Henry's Hammer was sitting right there in his driveway, gleaming in royal blue and gold, lightning crackling across its hood! It chose Henry as its driver because only someone with a truly awesome imagination could handle this much power. When Henry yells 'HAMMER TIME!' and pulls the golden lever, the whole stadium shakes, the lights go wild, and TRIPLE DAMAGE rocks the arena like nothing anyone has ever seen. This isn't just the strongest truck in the game — it's Henry's truck, and that makes it the coolest thing on four wheels, EVER."
+}

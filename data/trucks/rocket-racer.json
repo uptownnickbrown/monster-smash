@@ -1,0 +1,34 @@
+{
+  "id": "rocket-racer",
+  "name": "Rocket Racer",
+  "tagline": "Full Speed Ahead",
+  "rarity": "rare",
+  "stats": {
+    "smashDamage": 55,
+    "speed": 85,
+    "shield": 50,
+    "weight": 60,
+    "airTime": 75
+  },
+  "specialAbility": {
+    "name": "Rocket Launch",
+    "description": "Fires up twin rocket boosters and blasts to maximum speed — nothing in the arena can outrun this!",
+    "type": "speed-boost",
+    "multiplier": 1,
+    "duration": 2,
+    "icon": "rocket"
+  },
+  "visual": {
+    "bodyType": "suv",
+    "primaryColor": "#ffffff",
+    "secondaryColor": "#cc0000",
+    "accentColor": "#ff4444",
+    "pattern": "stripes",
+    "patternColor": "#dd1111",
+    "wheelColor": "#990000",
+    "decals": ["spoiler", "exhaust"],
+    "glowColor": "#ff4444",
+    "chassisStyle": "low"
+  },
+  "lore": "Rocket Racer strapped two actual rocket engines to its back and said 'let's GO!' This sleek white-and-red speed machine is the fastest truck in the rare class, and when it hits Rocket Launch mode, flames shoot out the back and it turns into a blur! It moves so fast the announcer can't even keep up. Ready, set, WHOOOOSH!"
+}

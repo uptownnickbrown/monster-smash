@@ -1,0 +1,34 @@
+{
+  "id": "storm-chaser",
+  "name": "Storm Chaser",
+  "tagline": "Ride The Storm",
+  "rarity": "common",
+  "stats": {
+    "smashDamage": 45,
+    "speed": 60,
+    "shield": 50,
+    "weight": 50,
+    "airTime": 55
+  },
+  "specialAbility": {
+    "name": "Tornado",
+    "description": "Storm Chaser whips up a wild tornado that spins the enemy truck around and stuns it for a turn!",
+    "type": "stun",
+    "multiplier": 1,
+    "duration": 1,
+    "icon": "tornado"
+  },
+  "visual": {
+    "bodyType": "pickup",
+    "primaryColor": "#335577",
+    "secondaryColor": "#88bbdd",
+    "accentColor": "#aaccee",
+    "pattern": "lightning",
+    "patternColor": "#88bbdd",
+    "wheelColor": "#223344",
+    "decals": [],
+    "glowColor": "#88bbdd",
+    "chassisStyle": "normal"
+  },
+  "lore": "Storm Chaser drives straight into the biggest, baddest storms and comes out the other side even stronger! Built with steel-blue armor and crackling lightning bolts, this truck carries the power of a thunderstorm under its hood. When it spins up a Tornado attack, everything goes flying!"
+}

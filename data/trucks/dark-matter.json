@@ -1,0 +1,34 @@
+{
+  "id": "dark-matter",
+  "name": "Dark Matter",
+  "tagline": "Fear The Void",
+  "rarity": "legendary",
+  "stats": {
+    "smashDamage": 90,
+    "speed": 75,
+    "shield": 80,
+    "weight": 80,
+    "airTime": 75
+  },
+  "specialAbility": {
+    "name": "Void Crush",
+    "description": "Opens a swirling black hole that crushes the enemy with the power of deep space, dealing damage equal to 40% of their max health!",
+    "type": "direct-damage",
+    "multiplier": 0.4,
+    "duration": 1,
+    "icon": "black-hole"
+  },
+  "visual": {
+    "bodyType": "suv",
+    "primaryColor": "#0a0a0a",
+    "secondaryColor": "#6600cc",
+    "accentColor": "#8833ff",
+    "pattern": "stars",
+    "patternColor": "#9944ff",
+    "wheelColor": "#1a0033",
+    "decals": ["eye"],
+    "glowColor": "#8833ff",
+    "chassisStyle": "tall"
+  },
+  "lore": "Dark Matter came from the deepest, darkest corner of outer space where no light can escape. Its body is so black it looks like a truck-shaped hole in the universe, with tiny purple stars swirling around it like a galaxy. When it activates Void Crush, a mini black hole opens up right under the enemy and squeezes them with the force of a collapsing star. Seriously spooky, seriously awesome!"
+}

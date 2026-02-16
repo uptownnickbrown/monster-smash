@@ -1,0 +1,34 @@
+{
+  "id": "turbo-rex",
+  "name": "Turbo Rex",
+  "tagline": "Dino-Powered Destruction",
+  "rarity": "common",
+  "stats": {
+    "smashDamage": 60,
+    "speed": 55,
+    "shield": 35,
+    "weight": 65,
+    "airTime": 50
+  },
+  "specialAbility": {
+    "name": "Tail Whip",
+    "description": "Spins around and slams its massive dino tail into the enemy, dealing damage and knocking them backwards!",
+    "type": "direct-damage",
+    "multiplier": 20,
+    "duration": 1,
+    "icon": "dinosaur"
+  },
+  "visual": {
+    "bodyType": "beast",
+    "primaryColor": "#669900",
+    "secondaryColor": "#cc6600",
+    "accentColor": "#88aa00",
+    "pattern": "scales",
+    "patternColor": "#557700",
+    "wheelColor": "#333300",
+    "decals": ["teeth", "eye"],
+    "glowColor": "#88aa00",
+    "chassisStyle": "normal"
+  },
+  "lore": "What happens when you strap a turbo engine onto a truck shaped like a T-Rex? You get Turbo Rex — the meanest, greenest dinosaur on four wheels! It stomps into the arena roaring its engine, and when it whips that giant tail around, watch out! Even bigger trucks go flying!"
+}

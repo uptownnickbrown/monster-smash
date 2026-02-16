@@ -1,0 +1,34 @@
+{
+  "id": "alien-invasion",
+  "name": "Alien Invasion",
+  "tagline": "Take Me To Your Leader",
+  "rarity": "rare",
+  "stats": {
+    "smashDamage": 60,
+    "speed": 70,
+    "shield": 55,
+    "weight": 60,
+    "airTime": 70
+  },
+  "specialAbility": {
+    "name": "Tractor Beam",
+    "description": "Alien Invasion activates its glowing tractor beam and sucks 15 HP right out of the enemy truck!",
+    "type": "steal",
+    "multiplier": 15,
+    "duration": 1,
+    "icon": "ufo"
+  },
+  "visual": {
+    "bodyType": "suv",
+    "primaryColor": "#00cc66",
+    "secondaryColor": "#00ff99",
+    "accentColor": "#33ffbb",
+    "pattern": "none",
+    "patternColor": "#00ff99",
+    "wheelColor": "#115533",
+    "decals": ["eye"],
+    "glowColor": "#00ff99",
+    "chassisStyle": "normal"
+  },
+  "lore": "Nobody believed little Timmy when he said a UFO landed in his backyard — until a glowing green monster truck zoomed out of the crater the next morning! Alien Invasion has a giant alien eye on the roof, hover-glow under the chassis, and a tractor beam that can steal energy from anything it zaps!"
+}

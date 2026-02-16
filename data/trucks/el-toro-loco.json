@@ -1,0 +1,34 @@
+{
+  "id": "el-toro-loco",
+  "name": "El Toro Loco",
+  "tagline": "Charge And Crush",
+  "rarity": "epic",
+  "stats": {
+    "smashDamage": 88,
+    "speed": 75,
+    "shield": 65,
+    "weight": 82,
+    "airTime": 65
+  },
+  "specialAbility": {
+    "name": "Bull Rush",
+    "description": "El Toro Loco puts its head down and charges like a raging bull, smashing right through shields and armor!",
+    "type": "pierce",
+    "multiplier": 1.6,
+    "duration": 1,
+    "icon": "bull"
+  },
+  "visual": {
+    "bodyType": "muscle",
+    "primaryColor": "#cc2200",
+    "secondaryColor": "#ffcc00",
+    "accentColor": "#ff4400",
+    "pattern": "flames",
+    "patternColor": "#ffcc00",
+    "wheelColor": "#333333",
+    "decals": ["horns"],
+    "glowColor": "#ff4400",
+    "chassisStyle": "normal"
+  },
+  "lore": "This crazy bull-truck escaped from the wildest rodeo in the world! With real horns on the roof and fire in its belly, El Toro Loco charges into battle seeing nothing but red. When it snorts its engine, flames shoot out its nose, and every other truck starts shaking in their tires!"
+}

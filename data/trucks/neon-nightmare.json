@@ -1,0 +1,34 @@
+{
+  "id": "neon-nightmare",
+  "name": "Neon Nightmare",
+  "tagline": "Glow Up Throwdown",
+  "rarity": "common",
+  "stats": {
+    "smashDamage": 65,
+    "speed": 55,
+    "shield": 45,
+    "weight": 55,
+    "airTime": 60
+  },
+  "specialAbility": {
+    "name": "Overload",
+    "description": "Neon Nightmare overloads its neon power core for a massive 60-damage blast, but the explosion costs it 20 HP too!",
+    "type": "direct-damage",
+    "multiplier": 60,
+    "duration": 1,
+    "icon": "neon"
+  },
+  "visual": {
+    "bodyType": "buggy",
+    "primaryColor": "#ff00ff",
+    "secondaryColor": "#00ffff",
+    "accentColor": "#ff66ff",
+    "pattern": "stripes",
+    "patternColor": "#00ffff",
+    "wheelColor": "#660066",
+    "decals": [],
+    "glowColor": "#ff44ff",
+    "chassisStyle": "low"
+  },
+  "lore": "Neon Nightmare is what happens when you plug a monster truck into a million glow sticks! This magenta-and-cyan screamer lights up the whole arena like a rave party. But watch out — when it uses Overload, it blasts so much neon energy that it hurts itself too. High risk, high reward, ALL awesome!"
+}

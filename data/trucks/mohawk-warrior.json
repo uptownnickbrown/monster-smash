@@ -1,0 +1,34 @@
+{
+  "id": "mohawk-warrior",
+  "name": "Mohawk Warrior",
+  "tagline": "Punk Rock Power",
+  "rarity": "rare",
+  "stats": {
+    "smashDamage": 70,
+    "speed": 65,
+    "shield": 70,
+    "weight": 65,
+    "airTime": 65
+  },
+  "specialAbility": {
+    "name": "War Cry",
+    "description": "Mohawk Warrior lets out an epic battle scream that powers up its attacks AND raises its shield at the same time!",
+    "type": "damage-boost",
+    "multiplier": 1.3,
+    "duration": 2,
+    "icon": "mohawk"
+  },
+  "visual": {
+    "bodyType": "muscle",
+    "primaryColor": "#6633cc",
+    "secondaryColor": "#ff3366",
+    "accentColor": "#cc33ff",
+    "pattern": "tribal",
+    "patternColor": "#ff3366",
+    "wheelColor": "#222222",
+    "decals": ["mohawk"],
+    "glowColor": "#9944ff",
+    "chassisStyle": "normal"
+  },
+  "lore": "Mohawk Warrior showed up to the arena one day with a giant purple mohawk on its roof and tribal war paint all over its body. Nobody knows where it came from, but everyone knows not to mess with it! When it screams its War Cry, the whole stadium shakes and its enemies start trembling!"
+}

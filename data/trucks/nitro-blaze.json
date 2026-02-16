@@ -1,0 +1,34 @@
+{
+  "id": "nitro-blaze",
+  "name": "Nitro Blaze",
+  "tagline": "Born To Burn",
+  "rarity": "common",
+  "stats": {
+    "smashDamage": 45,
+    "speed": 70,
+    "shield": 40,
+    "weight": 55,
+    "airTime": 60
+  },
+  "specialAbility": {
+    "name": "Turbo Boost",
+    "description": "Nitro Blaze fires up its rear exhaust and rockets forward at double speed, smashing everything in its path!",
+    "type": "speed-boost",
+    "multiplier": 2.0,
+    "duration": 1,
+    "icon": "flame"
+  },
+  "visual": {
+    "bodyType": "suv",
+    "primaryColor": "#ff3300",
+    "secondaryColor": "#ffcc00",
+    "accentColor": "#ff6600",
+    "pattern": "flames",
+    "patternColor": "#ffcc00",
+    "wheelColor": "#441100",
+    "decals": ["exhaust"],
+    "glowColor": "#ff6600",
+    "chassisStyle": "normal"
+  },
+  "lore": "Nitro Blaze was built by a rocket scientist who thought regular monster trucks were way too slow. With twin turbo exhaust pipes that shoot real flames and a paint job that looks like its already on fire, this truck is the fastest thing on four giant wheels. Buckle up, because it has only one speed: BLAZING!"
+}
