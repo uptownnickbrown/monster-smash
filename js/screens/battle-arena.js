@@ -36,16 +36,17 @@ if (!CanvasRenderingContext2D.prototype.roundRect) {
 const ARENA_W = 900;
 const ARENA_H = 500;
 
-// Sweet spot config
-const SWEET_SPOT = 0.70;          // 70% drag = max power
+// Sweet spot config — zone, not a single pixel!
+const SWEET_SPOT_CENTER = 0.70;   // center of sweet spot zone
 const OVERCLOCK_PENALTY = 0.45;   // power drops by this much at 100% drag
+const CHARGE_TIMEOUT = 3.5;       // seconds before auto-launch
 
 // Starting positions (closer together for more impact)
 const PLAYER_START = 0.25;
 const ENEMY_START = 0.75;
 
 // Truck visual scale (bigger = more awesome)
-const TRUCK_SCALE = 1.0;
+const TRUCK_SCALE = 1.15;
 
 // Center pull force during launch (guarantees collision)
 const CENTER_PULL = 1500;
@@ -83,6 +84,11 @@ let enemyAbilityChecked = false;
 let launchPlayerPower = 0;
 let launchAiPower = 0;
 
+// Per-truck sweet spot zone (calculated at charge start)
+let sweetSpotLow = 0.60;
+let sweetSpotHigh = 0.80;
+let chargeTimer = 0;
+
 let playerAbilityUsed = false;
 let playerAbilityActive = null;
 let enemyAbilityUsed = false;
@@ -106,14 +112,28 @@ let scaleX = 1;
 let scaleY = 1;
 
 // ---- Sweet Spot Power Curve ----
+// Zone-based: linear ramp up to sweetSpotLow, flat 100% through sweetSpotHigh, then overclock
 function getSweetSpotPower(drag) {
   if (drag <= 0) return 0;
-  if (drag <= SWEET_SPOT) {
-    return drag / SWEET_SPOT; // linear 0 -> 1.0
+  if (drag <= sweetSpotLow) {
+    return drag / sweetSpotLow; // linear 0 -> 1.0
+  }
+  if (drag <= sweetSpotHigh) {
+    return 1.0; // in the sweet spot zone — full power!
   }
   // Overclock zone: drops from 1.0 down
-  const over = (drag - SWEET_SPOT) / (1 - SWEET_SPOT); // 0 -> 1
-  return 1.0 - over * OVERCLOCK_PENALTY; // 1.0 -> 0.55
+  const over = (drag - sweetSpotHigh) / (1 - sweetSpotHigh);
+  return 1.0 - over * OVERCLOCK_PENALTY;
+}
+
+// Calculate sweet spot zone width based on truck speed
+function calcSweetSpotZone(truck) {
+  const speedFactor = (truck.stats.speed || 50) / 100;
+  const halfWidth = 0.04 + speedFactor * 0.08; // 0.04 to 0.12 half-width
+  return {
+    low: SWEET_SPOT_CENTER - halfWidth,
+    high: SWEET_SPOT_CENTER + halfWidth,
+  };
 }
 
 // ---- Ability Visual Helpers ----
@@ -300,11 +320,17 @@ function handlePointerDown(e) {
     isDragging = true;
     dragStartX = e.clientX;
     chargeAmount = 0;
+    chargeTimer = CHARGE_TIMEOUT;
     playEngineRev(0.2);
+
+    // Calculate sweet spot zone for this truck's speed
+    const zone = calcSweetSpotZone(playerTruck);
+    sweetSpotLow = zone.low;
+    sweetSpotHigh = zone.high;
 
     // AI decides its power and starts charging simultaneously
     aiPower = randomRange(0.5, 0.8);
-    aiChargeTarget = aiPower * SWEET_SPOT; // visual charge amount
+    aiChargeTarget = aiPower * SWEET_SPOT_CENTER; // visual charge amount
     aiChargeProgress = 0;
   }
 }
@@ -323,8 +349,8 @@ function handlePointerMove(e) {
   playerPhysics.rotation = chargeAmount * 0.15 * -1;
 
   // Overclock effects - truck shakes and smokes
-  if (chargeAmount > SWEET_SPOT) {
-    const overIntensity = (chargeAmount - SWEET_SPOT) / (1 - SWEET_SPOT);
+  if (chargeAmount > sweetSpotHigh) {
+    const overIntensity = (chargeAmount - sweetSpotHigh) / (1 - sweetSpotHigh);
     playerPhysics.x += (Math.random() - 0.5) * 6 * overIntensity;
     // Red smoke from engine
     if (particles && Math.random() < 0.4) {
@@ -339,11 +365,12 @@ function handlePointerMove(e) {
 
 function handlePointerUp(e) {
   if (!isDragging || phase !== 'charge') return;
-  isDragging = false;
 
   if (chargeAmount < 0.05) {
     // Barely dragged - just reset
+    isDragging = false;
     chargeAmount = 0;
+    chargeTimer = 0;
     playerPhysics.x = playerPhysics.restX;
     playerPhysics.rotation = 0;
     enemyPhysics.x = enemyPhysics.restX;
@@ -352,8 +379,19 @@ function handlePointerUp(e) {
     return;
   }
 
+  executeLaunch();
+}
+
+// Shared launch logic — called by pointer release or timer expiry
+function executeLaunch() {
+  isDragging = false;
+  chargeTimer = 0;
+
+  // If barely charged (e.g. timer expired with no drag), give minimum
+  if (chargeAmount < 0.05) chargeAmount = 0.15;
+
   const playerPower = getSweetSpotPower(chargeAmount);
-  const isPerfect = chargeAmount >= 0.65 && chargeAmount <= 0.75;
+  const isPerfect = chargeAmount >= sweetSpotLow && chargeAmount <= sweetSpotHigh;
 
   // Store powers for damage calculation (not collision speed, which gets
   // compressed by the center-pull force)
@@ -427,9 +465,9 @@ function update(dt) {
   phaseTimer += dt;
   updateTweens(dt);
 
-  // Update damage numbers
+  // Update damage numbers (slower float, longer linger)
   damageNumbers = damageNumbers.filter(d => {
-    d.y -= 50 * dt;
+    d.y -= 30 * dt;
     d.life -= dt;
     d.alpha = Math.max(0, d.life / d.maxLife);
     d.scale = 1 + (1 - d.life / d.maxLife) * 0.3;
@@ -521,6 +559,16 @@ function updateCharge(dt) {
     enemyPhysics.x = enemyPhysics.restX + Math.sin(phaseTimer * 12 + 1) * 2;
   }
 
+  // Charge timer countdown — auto-launch when time runs out
+  if (isDragging && chargeTimer > 0) {
+    chargeTimer -= dt;
+    if (chargeTimer <= 0) {
+      chargeTimer = 0;
+      executeLaunch();
+      return;
+    }
+  }
+
   // AI charge ramp-up (when player is dragging)
   if (isDragging && aiChargeTarget > 0) {
     aiChargeProgress = Math.min(aiChargeProgress + dt * 2.5, aiChargeTarget);
@@ -529,7 +577,7 @@ function updateCharge(dt) {
     enemyPhysics.rotation = -aiChargeProgress * 0.15 * enemyPhysics.facing;
 
     // AI rev effects at high charge
-    if (aiChargeProgress > SWEET_SPOT * 0.6) {
+    if (aiChargeProgress > SWEET_SPOT_CENTER * 0.6) {
       enemyPhysics.x += (Math.random() - 0.5) * 3;
       if (particles && Math.random() < 0.2) {
         particles.emitFireTrail(
@@ -678,6 +726,7 @@ function updateNextSmash(dt) {
   phaseTimer = 0;
   chargeAmount = 0;
   isDragging = false;
+  chargeTimer = 0;
   aiPower = 0;
   aiChargeProgress = 0;
   aiChargeTarget = 0;
@@ -806,14 +855,14 @@ function handleSimultaneousCollision() {
     });
   }
 
-  // Floating damage numbers
+  // Floating damage numbers — spread apart so they don't overlap
   // Player's damage dealt to enemy (green - good for player)
   damageNumbers.push({
     value: playerDmg,
-    x: enemyPhysics.x,
-    y: enemyPhysics.y - 70,
-    life: 1.5,
-    maxLife: 1.5,
+    x: collisionX + 60,
+    y: collisionY - 30,
+    life: 2.5,
+    maxLife: 2.5,
     alpha: 1,
     scale: 1,
     isPlayer: false,
@@ -823,10 +872,10 @@ function handleSimultaneousCollision() {
   // Enemy's damage dealt to player (red - bad for player)
   damageNumbers.push({
     value: enemyDmg,
-    x: playerPhysics.x,
-    y: playerPhysics.y - 70,
-    life: 1.5,
-    maxLife: 1.5,
+    x: collisionX - 60,
+    y: collisionY + 10,
+    life: 2.5,
+    maxLife: 2.5,
     alpha: 1,
     scale: 1,
     isPlayer: true,
@@ -1377,7 +1426,7 @@ function drawPowerMeter(ctx, w, h) {
   const meterW = w * 0.55;
   const meterH = 28;
   const meterX = (w - meterW) / 2;
-  const meterY = h * 0.87;
+  const meterY = h * 0.85;
 
   // Background bar
   ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
@@ -1395,44 +1444,58 @@ function drawPowerMeter(ctx, w, h) {
   ctx.clip();
 
   const innerW = meterW - 4;
-  const sweetSpotPx = innerW * SWEET_SPOT;
+  const ssLowPx = innerW * sweetSpotLow;
+  const ssHighPx = innerW * sweetSpotHigh;
 
-  // Green zone (0 -> sweet spot)
-  const greenGrad = ctx.createLinearGradient(meterX + 2, 0, meterX + 2 + sweetSpotPx, 0);
+  // Green zone (0 -> sweet spot start)
+  const greenGrad = ctx.createLinearGradient(meterX + 2, 0, meterX + 2 + ssLowPx, 0);
   greenGrad.addColorStop(0, '#115511');
   greenGrad.addColorStop(0.7, '#22aa22');
   greenGrad.addColorStop(1, '#33dd33');
   ctx.fillStyle = greenGrad;
   ctx.globalAlpha = 0.5;
-  ctx.fillRect(meterX + 2, meterY + 2, sweetSpotPx, meterH - 4);
+  ctx.fillRect(meterX + 2, meterY + 2, ssLowPx, meterH - 4);
 
-  // Red zone (sweet spot -> end)
-  const redGrad = ctx.createLinearGradient(meterX + 2 + sweetSpotPx, 0, meterX + 2 + innerW, 0);
+  // Gold zone (sweet spot range) — the target!
+  const goldGrad = ctx.createLinearGradient(meterX + 2 + ssLowPx, 0, meterX + 2 + ssHighPx, 0);
+  goldGrad.addColorStop(0, '#886600');
+  goldGrad.addColorStop(0.5, '#ccaa00');
+  goldGrad.addColorStop(1, '#886600');
+  ctx.fillStyle = goldGrad;
+  ctx.globalAlpha = 0.6 + Math.sin(performance.now() / 300) * 0.15;
+  ctx.fillRect(meterX + 2 + ssLowPx, meterY + 2, ssHighPx - ssLowPx, meterH - 4);
+
+  // Red zone (sweet spot end -> overclock)
+  const redGrad = ctx.createLinearGradient(meterX + 2 + ssHighPx, 0, meterX + 2 + innerW, 0);
   redGrad.addColorStop(0, '#dd4400');
   redGrad.addColorStop(1, '#cc0000');
   ctx.fillStyle = redGrad;
   ctx.globalAlpha = 0.5;
-  ctx.fillRect(meterX + 2 + sweetSpotPx, meterY + 2, innerW - sweetSpotPx, meterH - 4);
+  ctx.fillRect(meterX + 2 + ssHighPx, meterY + 2, innerW - ssHighPx, meterH - 4);
 
   // Fill indicator showing current charge
   const fillW = innerW * chargeAmount;
-  const isOverclock = chargeAmount > SWEET_SPOT;
+  const isOverclock = chargeAmount > sweetSpotHigh;
+  const inSweetSpot = chargeAmount >= sweetSpotLow && chargeAmount <= sweetSpotHigh;
   const power = getSweetSpotPower(chargeAmount);
 
   ctx.globalAlpha = 0.85;
   if (isOverclock) {
     const pulse = Math.sin(performance.now() / 80) * 55;
-    ctx.fillStyle = `rgb(${200 + pulse}, ${Math.max(0, 100 - (chargeAmount - SWEET_SPOT) * 300)}, 0)`;
+    ctx.fillStyle = `rgb(${200 + pulse}, ${Math.max(0, 100 - (chargeAmount - sweetSpotHigh) * 300)}, 0)`;
+  } else if (inSweetSpot) {
+    ctx.fillStyle = '#ffd21a';
   } else {
     const g = Math.floor(100 + power * 155);
     ctx.fillStyle = `rgb(30, ${g}, 30)`;
   }
   ctx.fillRect(meterX + 2, meterY + 2, fillW, meterH - 4);
 
-  // Sweet spot gold line
-  ctx.globalAlpha = 0.9 + Math.sin(performance.now() / 200) * 0.1;
+  // Sweet spot zone borders (gold lines)
+  ctx.globalAlpha = 0.9;
   ctx.fillStyle = '#ffd21a';
-  ctx.fillRect(meterX + 2 + sweetSpotPx - 2, meterY + 2, 4, meterH - 4);
+  ctx.fillRect(meterX + 2 + ssLowPx - 1, meterY + 2, 2, meterH - 4);
+  ctx.fillRect(meterX + 2 + ssHighPx - 1, meterY + 2, 2, meterH - 4);
 
   ctx.restore();
 
@@ -1441,15 +1504,16 @@ function drawPowerMeter(ctx, w, h) {
   ctx.font = `bold ${9 * scaleX}px "Bangers", sans-serif`;
   ctx.textAlign = 'center';
 
-  // "SWEET SPOT" at the gold line
+  // "SWEET SPOT" centered over the gold zone
+  const ssCenter = meterX + 2 + (ssLowPx + ssHighPx) / 2;
   ctx.fillStyle = '#ffd21a';
-  ctx.globalAlpha = 0.7;
-  ctx.fillText('SWEET SPOT', meterX + 2 + sweetSpotPx, meterY - 3);
+  ctx.globalAlpha = 0.8;
+  ctx.fillText('SWEET SPOT', ssCenter, meterY - 3);
 
   // "OVERCLOCK" in the red zone
   ctx.fillStyle = '#ff4400';
   ctx.globalAlpha = 0.5;
-  const overclockCenterX = meterX + 2 + sweetSpotPx + (innerW - sweetSpotPx) / 2;
+  const overclockCenterX = meterX + 2 + ssHighPx + (innerW - ssHighPx) / 2;
   ctx.fillText('OVERCLOCK', overclockCenterX, meterY - 3);
   ctx.restore();
 
@@ -1459,7 +1523,7 @@ function drawPowerMeter(ctx, w, h) {
   ctx.textAlign = 'center';
   if (isOverclock) {
     ctx.fillStyle = '#ff4400';
-  } else if (power > 0.9) {
+  } else if (inSweetSpot) {
     ctx.fillStyle = '#ffd21a';
   } else if (power > 0.6) {
     ctx.fillStyle = '#39ff14';
@@ -1468,12 +1532,43 @@ function drawPowerMeter(ctx, w, h) {
   }
   ctx.fillText(`${pct}% POWER`, w / 2, meterY + meterH + 20);
 
+  // Charge timer countdown
+  if (isDragging && chargeTimer > 0) {
+    const timerPct = chargeTimer / CHARGE_TIMEOUT;
+    const timerColor = timerPct > 0.4 ? '#ffffff' : timerPct > 0.2 ? '#ffd21a' : '#ff2200';
+    const timerPulse = timerPct < 0.3 ? 0.5 + Math.sin(performance.now() / 100) * 0.5 : 1;
+
+    // Timer bar above power meter
+    ctx.save();
+    ctx.globalAlpha = 0.7 * timerPulse;
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.fillRect(meterX, meterY - 14, meterW, 6);
+    ctx.fillStyle = timerColor;
+    ctx.fillRect(meterX, meterY - 14, meterW * timerPct, 6);
+    ctx.restore();
+
+    // Timer text
+    ctx.save();
+    ctx.font = `bold ${12 * scaleX}px "Bangers", sans-serif`;
+    ctx.textAlign = 'right';
+    ctx.fillStyle = timerColor;
+    ctx.globalAlpha = timerPulse;
+    ctx.fillText(`${chargeTimer.toFixed(1)}s`, meterX + meterW, meterY - 18);
+    ctx.restore();
+  }
+
   // Status text below
   ctx.font = `bold ${11 * scaleX}px "Bangers", sans-serif`;
+  ctx.textAlign = 'center';
   if (isOverclock) {
     ctx.fillStyle = '#ff2200';
     ctx.globalAlpha = 0.6 + Math.sin(performance.now() / 100) * 0.4;
     ctx.fillText('ENGINE OVERCLOCKED!', w / 2, meterY + meterH + 36);
+    ctx.globalAlpha = 1;
+  } else if (inSweetSpot) {
+    ctx.fillStyle = '#ffd21a';
+    ctx.globalAlpha = 0.8 + Math.sin(performance.now() / 150) * 0.2;
+    ctx.fillText('PERFECT ZONE! RELEASE NOW!', w / 2, meterY + meterH + 36);
     ctx.globalAlpha = 1;
   } else {
     ctx.fillStyle = '#ffd21a';
