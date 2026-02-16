@@ -4,11 +4,11 @@
   "tagline": "Glow Up Throwdown",
   "rarity": "common",
   "stats": {
-    "smashDamage": 65,
-    "speed": 55,
-    "shield": 45,
-    "weight": 55,
-    "airTime": 60
+    "smashDamage": 49,
+    "speed": 41,
+    "shield": 34,
+    "weight": 41,
+    "airTime": 45
   },
   "specialAbility": {
     "name": "Overload",

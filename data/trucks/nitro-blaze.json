@@ -4,17 +4,17 @@
   "tagline": "Born To Burn",
   "rarity": "common",
   "stats": {
-    "smashDamage": 45,
-    "speed": 70,
-    "shield": 40,
-    "weight": 55,
-    "airTime": 60
+    "smashDamage": 34,
+    "speed": 53,
+    "shield": 30,
+    "weight": 41,
+    "airTime": 45
   },
   "specialAbility": {
     "name": "Turbo Boost",
     "description": "Nitro Blaze fires up its rear exhaust and rockets forward at double speed, smashing everything in its path!",
     "type": "speed-boost",
-    "multiplier": 2.0,
+    "multiplier": 2,
     "duration": 1,
     "icon": "flame"
   },
@@ -26,7 +26,9 @@
     "pattern": "flames",
     "patternColor": "#ffcc00",
     "wheelColor": "#441100",
-    "decals": ["exhaust"],
+    "decals": [
+      "exhaust"
+    ],
     "glowColor": "#ff6600",
     "chassisStyle": "normal"
   },

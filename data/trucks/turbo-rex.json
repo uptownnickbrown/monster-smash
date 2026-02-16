@@ -4,11 +4,11 @@
   "tagline": "Dino-Powered Destruction",
   "rarity": "common",
   "stats": {
-    "smashDamage": 60,
-    "speed": 55,
-    "shield": 35,
-    "weight": 65,
-    "airTime": 50
+    "smashDamage": 45,
+    "speed": 41,
+    "shield": 26,
+    "weight": 49,
+    "airTime": 38
   },
   "specialAbility": {
     "name": "Tail Whip",
@@ -26,7 +26,10 @@
     "pattern": "scales",
     "patternColor": "#557700",
     "wheelColor": "#333300",
-    "decals": ["teeth", "eye"],
+    "decals": [
+      "teeth",
+      "eye"
+    ],
     "glowColor": "#88aa00",
     "chassisStyle": "normal"
   },

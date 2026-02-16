@@ -4,11 +4,11 @@
   "tagline": "Burning From Within",
   "rarity": "common",
   "stats": {
-    "smashDamage": 70,
-    "speed": 45,
-    "shield": 40,
-    "weight": 65,
-    "airTime": 50
+    "smashDamage": 53,
+    "speed": 34,
+    "shield": 30,
+    "weight": 49,
+    "airTime": 38
   },
   "specialAbility": {
     "name": "Meltdown",
@@ -26,7 +26,9 @@
     "pattern": "flames",
     "patternColor": "#ff4400",
     "wheelColor": "#331100",
-    "decals": ["exhaust"],
+    "decals": [
+      "exhaust"
+    ],
     "glowColor": "#ff6600",
     "chassisStyle": "normal"
   },

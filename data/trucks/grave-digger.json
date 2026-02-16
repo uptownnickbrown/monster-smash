@@ -4,17 +4,17 @@
   "tagline": "Rest In Pieces",
   "rarity": "legendary",
   "stats": {
-    "smashDamage": 95,
-    "speed": 72,
-    "shield": 80,
-    "weight": 85,
-    "airTime": 68
+    "smashDamage": 100,
+    "speed": 81,
+    "shield": 90,
+    "weight": 95,
+    "airTime": 76
   },
   "specialAbility": {
     "name": "Graveyard Smash",
     "description": "Grave Digger channels the power of a thousand tombstones to double its smash damage for one devastating hit!",
     "type": "damage-boost",
-    "multiplier": 2.0,
+    "multiplier": 2,
     "duration": 1,
     "icon": "skull"
   },
@@ -26,7 +26,10 @@
     "pattern": "flames",
     "patternColor": "#00cc44",
     "wheelColor": "#333333",
-    "decals": ["skull", "tombstone"],
+    "decals": [
+      "skull",
+      "tombstone"
+    ],
     "glowColor": "#00ff55",
     "chassisStyle": "tall"
   },

@@ -4,11 +4,11 @@
   "tagline": "Henry's Ultimate Ride",
   "rarity": "legendary",
   "stats": {
-    "smashDamage": 95,
-    "speed": 80,
-    "shield": 75,
-    "weight": 85,
-    "airTime": 80
+    "smashDamage": 100,
+    "speed": 90,
+    "shield": 84,
+    "weight": 95,
+    "airTime": 90
   },
   "specialAbility": {
     "name": "Hammer Time",
@@ -26,7 +26,10 @@
     "pattern": "lightning",
     "patternColor": "#ffdd44",
     "wheelColor": "#003399",
-    "decals": ["skull", "spoiler"],
+    "decals": [
+      "skull",
+      "spoiler"
+    ],
     "glowColor": "#4488ff",
     "chassisStyle": "tall"
   },

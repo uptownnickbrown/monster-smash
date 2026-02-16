@@ -4,11 +4,11 @@
   "tagline": "Fear The Void",
   "rarity": "legendary",
   "stats": {
-    "smashDamage": 90,
-    "speed": 75,
-    "shield": 80,
-    "weight": 80,
-    "airTime": 75
+    "smashDamage": 100,
+    "speed": 84,
+    "shield": 90,
+    "weight": 90,
+    "airTime": 84
   },
   "specialAbility": {
     "name": "Void Crush",
@@ -26,7 +26,9 @@
     "pattern": "stars",
     "patternColor": "#9944ff",
     "wheelColor": "#1a0033",
-    "decals": ["eye"],
+    "decals": [
+      "eye"
+    ],
     "glowColor": "#8833ff",
     "chassisStyle": "tall"
   },

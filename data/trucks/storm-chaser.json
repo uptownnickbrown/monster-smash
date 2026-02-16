@@ -4,11 +4,11 @@
   "tagline": "Ride The Storm",
   "rarity": "common",
   "stats": {
-    "smashDamage": 45,
-    "speed": 60,
-    "shield": 50,
-    "weight": 50,
-    "airTime": 55
+    "smashDamage": 34,
+    "speed": 45,
+    "shield": 38,
+    "weight": 38,
+    "airTime": 41
   },
   "specialAbility": {
     "name": "Tornado",

@@ -4,11 +4,11 @@
   "tagline": "Glitter And Grit",
   "rarity": "epic",
   "stats": {
-    "smashDamage": 78,
-    "speed": 74,
-    "shield": 68,
-    "weight": 65,
-    "airTime": 75
+    "smashDamage": 82,
+    "speed": 78,
+    "shield": 71,
+    "weight": 68,
+    "airTime": 79
   },
   "specialAbility": {
     "name": "Unicorn Blast",

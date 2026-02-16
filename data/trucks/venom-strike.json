@@ -4,11 +4,11 @@
   "tagline": "Toxic Takedown",
   "rarity": "common",
   "stats": {
-    "smashDamage": 55,
-    "speed": 55,
-    "shield": 50,
-    "weight": 60,
-    "airTime": 55
+    "smashDamage": 41,
+    "speed": 41,
+    "shield": 38,
+    "weight": 45,
+    "airTime": 41
   },
   "specialAbility": {
     "name": "Poison",
@@ -26,7 +26,10 @@
     "pattern": "splatter",
     "patternColor": "#00ff00",
     "wheelColor": "#220044",
-    "decals": ["teeth", "eye"],
+    "decals": [
+      "teeth",
+      "eye"
+    ],
     "glowColor": "#00ff00",
     "chassisStyle": "low"
   },

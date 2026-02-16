@@ -4,11 +4,11 @@
   "tagline": "Strike From The Stars",
   "rarity": "epic",
   "stats": {
-    "smashDamage": 80,
-    "speed": 70,
-    "shield": 65,
-    "weight": 75,
-    "airTime": 75
+    "smashDamage": 84,
+    "speed": 74,
+    "shield": 68,
+    "weight": 79,
+    "airTime": 79
   },
   "specialAbility": {
     "name": "Meteor Strike",

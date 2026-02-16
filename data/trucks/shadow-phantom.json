@@ -4,11 +4,11 @@
   "tagline": "Now You See Me...",
   "rarity": "epic",
   "stats": {
-    "smashDamage": 75,
-    "speed": 80,
-    "shield": 55,
-    "weight": 70,
-    "airTime": 80
+    "smashDamage": 79,
+    "speed": 84,
+    "shield": 58,
+    "weight": 74,
+    "airTime": 84
   },
   "specialAbility": {
     "name": "Phase Shift",
@@ -26,7 +26,9 @@
     "pattern": "tribal",
     "patternColor": "#552288",
     "wheelColor": "#1a0033",
-    "decals": ["eye"],
+    "decals": [
+      "eye"
+    ],
     "glowColor": "#8844cc",
     "chassisStyle": "normal"
   },

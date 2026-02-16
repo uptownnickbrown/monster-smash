@@ -4,11 +4,11 @@
   "tagline": "Ruh-Roh Rampage",
   "rarity": "common",
   "stats": {
-    "smashDamage": 45,
-    "speed": 60,
-    "shield": 50,
-    "weight": 55,
-    "airTime": 60
+    "smashDamage": 34,
+    "speed": 45,
+    "shield": 38,
+    "weight": 41,
+    "airTime": 45
   },
   "specialAbility": {
     "name": "Scooby Snack",

@@ -4,17 +4,17 @@
   "tagline": "Ground Zero",
   "rarity": "epic",
   "stats": {
-    "smashDamage": 82,
-    "speed": 60,
-    "shield": 85,
-    "weight": 90,
-    "airTime": 63
+    "smashDamage": 86,
+    "speed": 63,
+    "shield": 89,
+    "weight": 95,
+    "airTime": 66
   },
   "specialAbility": {
     "name": "Earthquake",
     "description": "EarthShaker slams the ground so hard it creates a massive earthquake that stuns the enemy and shakes the whole arena!",
     "type": "stun",
-    "multiplier": 1.0,
+    "multiplier": 1,
     "duration": 2,
     "icon": "earthquake"
   },

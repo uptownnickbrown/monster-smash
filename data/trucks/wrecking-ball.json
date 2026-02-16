@@ -4,11 +4,11 @@
   "tagline": "Smash Through Everything",
   "rarity": "common",
   "stats": {
-    "smashDamage": 65,
-    "speed": 40,
-    "shield": 50,
-    "weight": 75,
-    "airTime": 45
+    "smashDamage": 49,
+    "speed": 30,
+    "shield": 38,
+    "weight": 56,
+    "airTime": 34
   },
   "specialAbility": {
     "name": "Demolition",

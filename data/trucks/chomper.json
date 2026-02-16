@@ -4,11 +4,11 @@
   "tagline": "Bite First, Ask Later",
   "rarity": "common",
   "stats": {
-    "smashDamage": 60,
-    "speed": 50,
-    "shield": 40,
-    "weight": 70,
-    "airTime": 50
+    "smashDamage": 45,
+    "speed": 38,
+    "shield": 30,
+    "weight": 53,
+    "airTime": 38
   },
   "specialAbility": {
     "name": "Big Bite",
@@ -26,7 +26,10 @@
     "pattern": "none",
     "patternColor": "#ff9900",
     "wheelColor": "#442200",
-    "decals": ["teeth", "eye"],
+    "decals": [
+      "teeth",
+      "eye"
+    ],
     "glowColor": "#ffaa33",
     "chassisStyle": "normal"
   },

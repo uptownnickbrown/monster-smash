@@ -4,11 +4,11 @@
   "tagline": "Maximum Destruction",
   "rarity": "legendary",
   "stats": {
-    "smashDamage": 82,
-    "speed": 90,
-    "shield": 70,
-    "weight": 75,
-    "airTime": 78
+    "smashDamage": 92,
+    "speed": 100,
+    "shield": 78,
+    "weight": 84,
+    "airTime": 87
   },
   "specialAbility": {
     "name": "Maximum Overdrive",
@@ -26,7 +26,9 @@
     "pattern": "lightning",
     "patternColor": "#ff6600",
     "wheelColor": "#444444",
-    "decals": ["spoiler"],
+    "decals": [
+      "spoiler"
+    ],
     "glowColor": "#ff8800",
     "chassisStyle": "tall"
   },

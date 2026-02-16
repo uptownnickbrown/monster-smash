@@ -4,11 +4,11 @@
   "tagline": "Claw Of Doom",
   "rarity": "common",
   "stats": {
-    "smashDamage": 65,
-    "speed": 50,
-    "shield": 55,
-    "weight": 65,
-    "airTime": 45
+    "smashDamage": 49,
+    "speed": 38,
+    "shield": 41,
+    "weight": 49,
+    "airTime": 34
   },
   "specialAbility": {
     "name": "Claw Grab",
@@ -26,7 +26,9 @@
     "pattern": "none",
     "patternColor": "#cc0000",
     "wheelColor": "#440000",
-    "decals": ["teeth"],
+    "decals": [
+      "teeth"
+    ],
     "glowColor": "#ff3333",
     "chassisStyle": "tall"
   },

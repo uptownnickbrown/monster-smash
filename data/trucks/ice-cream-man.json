@@ -4,11 +4,11 @@
   "tagline": "Served Cold",
   "rarity": "common",
   "stats": {
-    "smashDamage": 50,
-    "speed": 55,
-    "shield": 45,
-    "weight": 60,
-    "airTime": 55
+    "smashDamage": 38,
+    "speed": 41,
+    "shield": 34,
+    "weight": 45,
+    "airTime": 41
   },
   "specialAbility": {
     "name": "Brain Freeze",

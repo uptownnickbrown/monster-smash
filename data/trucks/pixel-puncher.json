@@ -4,11 +4,11 @@
   "tagline": "Reality Is A Glitch",
   "rarity": "common",
   "stats": {
-    "smashDamage": 50,
-    "speed": 55,
-    "shield": 45,
-    "weight": 50,
-    "airTime": 60
+    "smashDamage": 38,
+    "speed": 41,
+    "shield": 34,
+    "weight": 38,
+    "airTime": 45
   },
   "specialAbility": {
     "name": "Glitch",

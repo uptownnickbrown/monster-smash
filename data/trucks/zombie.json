@@ -4,11 +4,11 @@
   "tagline": "Never Stays Down",
   "rarity": "epic",
   "stats": {
-    "smashDamage": 72,
-    "speed": 68,
-    "shield": 82,
-    "weight": 78,
-    "airTime": 65
+    "smashDamage": 76,
+    "speed": 71,
+    "shield": 86,
+    "weight": 82,
+    "airTime": 68
   },
   "specialAbility": {
     "name": "Undead Rise",
@@ -26,7 +26,9 @@
     "pattern": "splatter",
     "patternColor": "#88cc44",
     "wheelColor": "#333333",
-    "decals": ["skull"],
+    "decals": [
+      "skull"
+    ],
     "glowColor": "#66ff33",
     "chassisStyle": "tall"
   },

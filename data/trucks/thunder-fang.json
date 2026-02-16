@@ -4,11 +4,11 @@
   "tagline": "Shockingly Fierce",
   "rarity": "common",
   "stats": {
-    "smashDamage": 55,
-    "speed": 60,
-    "shield": 40,
-    "weight": 50,
-    "airTime": 55
+    "smashDamage": 41,
+    "speed": 45,
+    "shield": 30,
+    "weight": 38,
+    "airTime": 41
   },
   "specialAbility": {
     "name": "Static Shock",
@@ -26,7 +26,9 @@
     "pattern": "lightning",
     "patternColor": "#ff6600",
     "wheelColor": "#443300",
-    "decals": ["teeth"],
+    "decals": [
+      "teeth"
+    ],
     "glowColor": "#ffdd33",
     "chassisStyle": "low"
   },

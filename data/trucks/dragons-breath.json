@@ -4,11 +4,11 @@
   "tagline": "Born In Fire",
   "rarity": "epic",
   "stats": {
-    "smashDamage": 85,
-    "speed": 70,
-    "shield": 72,
-    "weight": 80,
-    "airTime": 68
+    "smashDamage": 89,
+    "speed": 74,
+    "shield": 76,
+    "weight": 84,
+    "airTime": 71
   },
   "specialAbility": {
     "name": "Fire Breath",
@@ -26,7 +26,11 @@
     "pattern": "flames",
     "patternColor": "#ff6600",
     "wheelColor": "#442200",
-    "decals": ["teeth", "exhaust", "wings"],
+    "decals": [
+      "teeth",
+      "exhaust",
+      "wings"
+    ],
     "glowColor": "#ff4400",
     "chassisStyle": "tall"
   },

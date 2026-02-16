@@ -4,11 +4,11 @@
   "tagline": "Jaws Of Steel",
   "rarity": "epic",
   "stats": {
-    "smashDamage": 80,
-    "speed": 78,
-    "shield": 70,
-    "weight": 72,
-    "airTime": 70
+    "smashDamage": 84,
+    "speed": 82,
+    "shield": 74,
+    "weight": 76,
+    "airTime": 74
   },
   "specialAbility": {
     "name": "Feeding Frenzy",
@@ -26,7 +26,10 @@
     "pattern": "scales",
     "patternColor": "#00aaff",
     "wheelColor": "#224466",
-    "decals": ["fin", "teeth"],
+    "decals": [
+      "fin",
+      "teeth"
+    ],
     "glowColor": "#00aaff",
     "chassisStyle": "normal"
   },
