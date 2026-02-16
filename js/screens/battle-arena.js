@@ -1,8 +1,8 @@
 // ============================================
 // MONSTER SMASH - Battle Arena
-// Drag-back slingshot with sweet spot,
-// full-arena collisions, fire effects,
-// stat-exaggerated visuals, ability effects
+// Simultaneous drag-and-smash with sweet spot,
+// guaranteed center collision, health bars,
+// fire effects, stat-exaggerated visuals
 // ============================================
 
 import { createBattleCanvas, startGameLoop, stopGameLoop, destroyBattleCanvas } from '../engine/canvas-renderer.js';
@@ -40,6 +40,16 @@ const ARENA_H = 500;
 const SWEET_SPOT = 0.70;          // 70% drag = max power
 const OVERCLOCK_PENALTY = 0.45;   // power drops by this much at 100% drag
 
+// Starting positions (closer together for more impact)
+const PLAYER_START = 0.25;
+const ENEMY_START = 0.75;
+
+// Truck visual scale (bigger = more awesome)
+const TRUCK_SCALE = 1.0;
+
+// Center pull force during launch (guarantees collision)
+const CENTER_PULL = 1500;
+
 // Battle state
 let playerTruck = null;
 let enemyTruck = null;
@@ -62,6 +72,16 @@ const MAX_SMASHES = 3;
 let chargeAmount = 0;      // 0.0 to 1.0 raw drag distance
 let isDragging = false;
 let dragStartX = 0;
+
+// AI simultaneous charge
+let aiPower = 0;              // AI's chosen power for this smash
+let aiChargeProgress = 0;     // AI's current visual charge (ramps up)
+let aiChargeTarget = 0;       // AI's target visual charge amount
+let enemyAbilityChecked = false;
+
+// Stored launch powers (used for damage calc instead of collision speed)
+let launchPlayerPower = 0;
+let launchAiPower = 0;
 
 let playerAbilityUsed = false;
 let playerAbilityActive = null;
@@ -149,11 +169,15 @@ export function startBattle(pTruck, eTruck, roundNum, onComplete) {
   playerAbilityActive = null;
   enemyAbilityUsed = false;
   enemyAbilityActive = null;
+  enemyAbilityChecked = false;
   smashCount = 0;
   damageNumbers = [];
   abilityTexts = [];
   chargeAmount = 0;
   isDragging = false;
+  aiPower = 0;
+  aiChargeProgress = 0;
+  aiChargeTarget = 0;
   bgEmbers = [];
 
   // Initialize background embers
@@ -181,8 +205,14 @@ export function startBattle(pTruck, eTruck, roundNum, onComplete) {
   const { canvas } = createBattleCanvas(container, canvasWidth, canvasHeight);
 
   const groundY = canvasHeight * 0.75;
-  playerPhysics = new TruckPhysics(canvasWidth * 0.15, groundY, 1);
-  enemyPhysics = new TruckPhysics(canvasWidth * 0.85, groundY, -1);
+  playerPhysics = new TruckPhysics(canvasWidth * PLAYER_START, groundY, 1);
+  enemyPhysics = new TruckPhysics(canvasWidth * ENEMY_START, groundY, -1);
+
+  // Bigger collision boxes to match bigger truck visuals
+  playerPhysics.width = 170;
+  playerPhysics.height = 110;
+  enemyPhysics.width = 170;
+  enemyPhysics.height = 110;
 
   particles = new ParticleSystem();
   resetShake();
@@ -213,7 +243,7 @@ export function stopBattle() {
 }
 
 export function activatePlayerAbility() {
-  if (playerAbilityUsed || phase !== 'player-charge') return false;
+  if (playerAbilityUsed || phase !== 'charge') return false;
   playerAbilityUsed = true;
   playerAbilityActive = playerTruck.specialAbility;
 
@@ -266,23 +296,28 @@ export function getPhase() { return phase; }
 // ---- Input Handlers ----
 
 function handlePointerDown(e) {
-  if (phase === 'player-charge') {
+  if (phase === 'charge') {
     isDragging = true;
     dragStartX = e.clientX;
     chargeAmount = 0;
     playEngineRev(0.2);
+
+    // AI decides its power and starts charging simultaneously
+    aiPower = randomRange(0.5, 0.8);
+    aiChargeTarget = aiPower * SWEET_SPOT; // visual charge amount
+    aiChargeProgress = 0;
   }
 }
 
 function handlePointerMove(e) {
-  if (!isDragging || phase !== 'player-charge') return;
+  if (!isDragging || phase !== 'charge') return;
 
   // Drag LEFT to charge (positive dx = more charge)
   const dx = dragStartX - e.clientX;
-  const maxDragPx = canvasWidth * 0.22;
+  const maxDragPx = canvasWidth * 0.35; // wider zone so sweet spot isn't at edge
   chargeAmount = clamp(dx / maxDragPx, 0, 1);
 
-  // Pull truck back visually
+  // Pull player truck back visually
   const pullbackPx = chargeAmount * canvasWidth * 0.12;
   playerPhysics.x = playerPhysics.restX - pullbackPx;
   playerPhysics.rotation = chargeAmount * 0.15 * -1;
@@ -303,7 +338,7 @@ function handlePointerMove(e) {
 }
 
 function handlePointerUp(e) {
-  if (!isDragging || phase !== 'player-charge') return;
+  if (!isDragging || phase !== 'charge') return;
   isDragging = false;
 
   if (chargeAmount < 0.05) {
@@ -311,38 +346,62 @@ function handlePointerUp(e) {
     chargeAmount = 0;
     playerPhysics.x = playerPhysics.restX;
     playerPhysics.rotation = 0;
+    enemyPhysics.x = enemyPhysics.restX;
+    enemyPhysics.rotation = 0;
+    aiChargeProgress = 0;
     return;
   }
 
-  const power = getSweetSpotPower(chargeAmount);
+  const playerPower = getSweetSpotPower(chargeAmount);
   const isPerfect = chargeAmount >= 0.65 && chargeAmount <= 0.75;
 
-  phase = 'player-launch';
+  // Store powers for damage calculation (not collision speed, which gets
+  // compressed by the center-pull force)
+  launchPlayerPower = playerPower;
+  launchAiPower = aiPower;
+
+  phase = 'launch';
   phaseTimer = 0;
 
-  // Launch velocity scales with arena distance and speed stat
+  // ---- Launch BOTH trucks simultaneously ----
   const arenaDistance = Math.abs(enemyPhysics.restX - playerPhysics.restX);
-  const speedFactor = (playerTruck.stats.speed / 100) * 0.7 + 0.3; // 0.3 -> 1.0
-  const baseVelocity = arenaDistance * 2.5;
-  const launchVx = baseVelocity * power * speedFactor * playerPhysics.facing;
 
-  // AirTime stat affects launch arc
-  const airTimeFactor = (playerTruck.stats.airTime || 50) / 100;
-  const launchVy = -180 * power * (0.5 + airTimeFactor * 0.8);
+  // Player launch
+  const playerSpeedFactor = (playerTruck.stats.speed / 100) * 0.7 + 0.3;
+  const playerLaunchVx = arenaDistance * 2.0 * playerPower * playerSpeedFactor * playerPhysics.facing;
+  const playerAirTime = (playerTruck.stats.airTime || 50) / 100;
+  const playerLaunchVy = -150 * playerPower * (0.5 + playerAirTime * 0.6);
 
-  playerPhysics.vx = launchVx;
-  playerPhysics.vy = launchVy;
+  playerPhysics.vx = playerLaunchVx;
+  playerPhysics.vy = playerLaunchVy;
   playerPhysics.grounded = false;
-  playerPhysics.rotation = -0.12 * playerPhysics.facing * power;
+  playerPhysics.rotation = -0.12 * playerPhysics.facing * playerPower;
   playerPhysics.rotationVelocity = 0.6 * playerPhysics.facing;
 
+  // Enemy launch (uses its own random AI power)
+  const enemySpeedFactor = (enemyTruck.stats.speed / 100) * 0.7 + 0.3;
+  const enemyLaunchVx = arenaDistance * 2.0 * aiPower * enemySpeedFactor * enemyPhysics.facing;
+  const enemyAirTime = (enemyTruck.stats.airTime || 50) / 100;
+  const enemyLaunchVy = -150 * aiPower * (0.5 + enemyAirTime * 0.6);
+
+  enemyPhysics.vx = enemyLaunchVx;
+  enemyPhysics.vy = enemyLaunchVy;
+  enemyPhysics.grounded = false;
+  enemyPhysics.rotation = -0.12 * enemyPhysics.facing * aiPower;
+  enemyPhysics.rotationVelocity = 0.6 * enemyPhysics.facing;
+
+  // Sound + visual effects for both
   playWhoosh();
   if (particles) {
     particles.emitDust(playerPhysics.x, playerPhysics.y + 20);
-    // Extra dust for heavy trucks
+    particles.emitDust(enemyPhysics.x, enemyPhysics.y + 20);
     if (playerTruck.stats.weight > 70) {
       particles.emitDust(playerPhysics.x - 20, playerPhysics.y + 20);
       particles.emitDust(playerPhysics.x + 20, playerPhysics.y + 20);
+    }
+    if (enemyTruck.stats.weight > 70) {
+      particles.emitDust(enemyPhysics.x - 20, enemyPhysics.y + 20);
+      particles.emitDust(enemyPhysics.x + 20, enemyPhysics.y + 20);
     }
   }
 
@@ -359,6 +418,7 @@ function handlePointerUp(e) {
   }
 
   chargeAmount = 0;
+  aiChargeProgress = 0;
 }
 
 // ---- Game Loop ----
@@ -396,23 +456,14 @@ function update(dt) {
     case 'intro':
       updateIntro(dt);
       break;
-    case 'player-charge':
-      updatePlayerCharge(dt);
+    case 'charge':
+      updateCharge(dt);
       break;
-    case 'player-launch':
-      updatePlayerLaunch(dt);
+    case 'launch':
+      updateLaunch(dt);
       break;
-    case 'player-hit':
-      updateAfterHit(dt, 'ai-charge');
-      break;
-    case 'ai-charge':
-      updateAICharge(dt);
-      break;
-    case 'ai-launch':
-      updateAILaunch(dt);
-      break;
-    case 'ai-hit':
-      updateAfterHit(dt, 'next-smash');
+    case 'hit':
+      updateHit(dt);
       break;
     case 'next-smash':
       updateNextSmash(dt);
@@ -445,8 +496,8 @@ function updateIntro(dt) {
   if (phaseTimer < 1.2) {
     const t = Math.min(phaseTimer / 0.9, 1);
     const ease = 1 - Math.pow(1 - t, 3);
-    playerPhysics.x = -80 + (canvasWidth * 0.15 + 80) * ease;
-    enemyPhysics.x = canvasWidth + 80 - (canvasWidth * 0.15 + 80) * ease;
+    playerPhysics.x = -80 + (canvasWidth * PLAYER_START + 80) * ease;
+    enemyPhysics.x = canvasWidth + 80 - (canvasWidth * (1 - ENEMY_START) + 80) * ease;
 
     // Dust trail during entrance
     if (phaseTimer > 0.1 && Math.random() < 0.3 && particles) {
@@ -454,43 +505,79 @@ function updateIntro(dt) {
       particles.emitDust(enemyPhysics.x + 30, enemyPhysics.y + 20);
     }
   } else {
-    playerPhysics.x = canvasWidth * 0.15;
-    enemyPhysics.x = canvasWidth * 0.85;
-    phase = 'player-charge';
+    playerPhysics.x = canvasWidth * PLAYER_START;
+    enemyPhysics.x = canvasWidth * ENEMY_START;
+    phase = 'charge';
     phaseTimer = 0;
     chargeAmount = 0;
     isDragging = false;
   }
 }
 
-function updatePlayerCharge(dt) {
-  // Idle truck bounce when NOT dragging
+function updateCharge(dt) {
+  // Player idle bounce when NOT dragging
   if (!isDragging) {
     playerPhysics.x = playerPhysics.restX + Math.sin(phaseTimer * 12) * 2;
+    enemyPhysics.x = enemyPhysics.restX + Math.sin(phaseTimer * 12 + 1) * 2;
+  }
+
+  // AI charge ramp-up (when player is dragging)
+  if (isDragging && aiChargeTarget > 0) {
+    aiChargeProgress = Math.min(aiChargeProgress + dt * 2.5, aiChargeTarget);
+    const pullbackPx = aiChargeProgress * canvasWidth * 0.12;
+    enemyPhysics.x = enemyPhysics.restX + pullbackPx; // pulls back to the right
+    enemyPhysics.rotation = -aiChargeProgress * 0.15 * enemyPhysics.facing;
+
+    // AI rev effects at high charge
+    if (aiChargeProgress > SWEET_SPOT * 0.6) {
+      enemyPhysics.x += (Math.random() - 0.5) * 3;
+      if (particles && Math.random() < 0.2) {
+        particles.emitFireTrail(
+          enemyPhysics.x - 20,
+          enemyPhysics.y - 30,
+          enemyTruck.visual.glowColor || '#ff2200'
+        );
+      }
+    }
+  }
+
+  // AI ability check (once per charge phase)
+  if (isDragging && !enemyAbilityChecked && phaseTimer > 0.3) {
+    enemyAbilityChecked = true;
+    if (!enemyAbilityUsed && Math.random() < 0.3) {
+      activateEnemyAbility();
+    }
   }
 
   updateDamageEffects(dt);
 }
 
-function updatePlayerLaunch(dt) {
+function updateLaunch(dt) {
+  const centerX = canvasWidth / 2;
+
+  // Center pull force - guarantees trucks always converge and collide
+  if (playerPhysics.x < centerX) {
+    playerPhysics.vx += CENTER_PULL * dt;
+  }
+  if (enemyPhysics.x > centerX) {
+    enemyPhysics.vx -= CENTER_PULL * dt;
+  }
+
   // Check collision
   if (playerPhysics.collidesWith(enemyPhysics)) {
-    handleCollision(playerTruck, enemyTruck, playerPhysics, enemyPhysics, playerAbilityActive, true);
-    playerAbilityActive = null;
-    phase = 'player-hit';
+    handleSimultaneousCollision();
+    phase = 'hit';
     phaseTimer = 0;
     return;
   }
 
-  // Fire trail while moving fast - more intense for fast trucks
-  const speed = Math.abs(playerPhysics.vx);
-  if (speed > 100 && particles) {
+  // Player fire trail
+  if (Math.abs(playerPhysics.vx) > 80 && particles) {
     particles.emitFireTrail(
       playerPhysics.x - 40 * scaleX,
       playerPhysics.y - 10,
       playerTruck.visual.glowColor || '#ff6b1a'
     );
-    // Extra trail for fast trucks
     if (playerTruck.stats.speed > 70 && Math.random() < 0.6) {
       particles.emitFireTrail(
         playerPhysics.x - 50 * scaleX,
@@ -498,7 +585,6 @@ function updatePlayerLaunch(dt) {
         '#ffd21a'
       );
     }
-    // Ability-colored trail if ability active
     if (playerAbilityActive) {
       particles.emitFireTrail(
         playerPhysics.x - 30 * scaleX,
@@ -508,65 +594,8 @@ function updatePlayerLaunch(dt) {
     }
   }
 
-  // Miss timeout
-  if (phaseTimer > 3 || (phaseTimer > 0.8 && Math.abs(playerPhysics.vx) < 30)) {
-    phase = 'ai-charge';
-    phaseTimer = 0;
-    playerPhysics.returnToRest(1);
-    playerPhysics.x = playerPhysics.restX;
-    playerPhysics.y = playerPhysics.restY;
-  }
-}
-
-function updateAICharge(dt) {
-  const chargeTime = randomRange(0.6, 1.2);
-
-  if (phaseTimer < 0.3) {
-    // Brief "ENEMY TURN" pause
-  } else if (phaseTimer < 0.3 + chargeTime) {
-    // AI truck revs (idle animation)
-    enemyPhysics.x = enemyPhysics.restX + Math.sin((phaseTimer - 0.3) * 15) * 2;
-
-    // Maybe use ability (30% chance)
-    if (!enemyAbilityUsed && phaseTimer > 0.5 && phaseTimer < 0.55 && Math.random() < 0.3) {
-      activateEnemyAbility();
-    }
-  } else {
-    // AI launches with 50-80% power (easy difficulty)
-    const aiPower = randomRange(0.5, 0.8);
-    const arenaDistance = Math.abs(playerPhysics.restX - enemyPhysics.restX);
-    const speedFactor = (enemyTruck.stats.speed / 100) * 0.7 + 0.3;
-    const launchVx = arenaDistance * 2.5 * aiPower * speedFactor * enemyPhysics.facing;
-    const airTimeFactor = (enemyTruck.stats.airTime || 50) / 100;
-    const launchVy = -180 * aiPower * (0.5 + airTimeFactor * 0.8);
-
-    enemyPhysics.vx = launchVx;
-    enemyPhysics.vy = launchVy;
-    enemyPhysics.grounded = false;
-    enemyPhysics.rotation = -0.12 * enemyPhysics.facing * aiPower;
-    enemyPhysics.rotationVelocity = 0.6 * enemyPhysics.facing;
-
-    phase = 'ai-launch';
-    phaseTimer = 0;
-
-    if (particles) {
-      particles.emitDust(enemyPhysics.x, enemyPhysics.y + 20);
-    }
-  }
-}
-
-function updateAILaunch(dt) {
-  if (enemyPhysics.collidesWith(playerPhysics)) {
-    handleCollision(enemyTruck, playerTruck, enemyPhysics, playerPhysics, enemyAbilityActive, false);
-    enemyAbilityActive = null;
-    phase = 'ai-hit';
-    phaseTimer = 0;
-    return;
-  }
-
-  // Fire trail
-  const speed = Math.abs(enemyPhysics.vx);
-  if (speed > 100 && particles) {
+  // Enemy fire trail
+  if (Math.abs(enemyPhysics.vx) > 80 && particles) {
     particles.emitFireTrail(
       enemyPhysics.x + 40 * scaleX,
       enemyPhysics.y - 10,
@@ -588,37 +617,28 @@ function updateAILaunch(dt) {
     }
   }
 
-  // Timeout
-  if (phaseTimer > 3 || (phaseTimer > 0.8 && Math.abs(enemyPhysics.vx) < 30)) {
-    phase = 'ai-hit';
+  // Timeout safety - force collision if stalled
+  if (phaseTimer > 3) {
+    playerPhysics.x = centerX - 50;
+    enemyPhysics.x = centerX + 50;
+    handleSimultaneousCollision();
+    phase = 'hit';
     phaseTimer = 0;
-    enemyPhysics.returnToRest(1);
-    enemyPhysics.x = enemyPhysics.restX;
-    enemyPhysics.y = enemyPhysics.restY;
   }
 }
 
-function updateAfterHit(dt, nextPhase) {
+function updateHit(dt) {
   playerPhysics.returnToRest(0.06);
   enemyPhysics.returnToRest(0.06);
 
   // Check for KO
-  if (playerHP <= 0) {
+  if (playerHP <= 0 || enemyHP <= 0) {
     phase = 'resolve';
     phaseTimer = 0;
-    if (particles) {
+    if (playerHP <= 0 && particles) {
       particles.emitExplosion(playerPhysics.x, playerPhysics.y - 20, playerTruck.visual.primaryColor);
     }
-    playExplosion();
-    triggerShake(25, 0.7);
-    flashAlpha = 1;
-    return;
-  }
-
-  if (enemyHP <= 0) {
-    phase = 'resolve';
-    phaseTimer = 0;
-    if (particles) {
+    if (enemyHP <= 0 && particles) {
       particles.emitExplosion(enemyPhysics.x, enemyPhysics.y - 20, enemyTruck.visual.primaryColor);
     }
     playExplosion();
@@ -628,7 +648,7 @@ function updateAfterHit(dt, nextPhase) {
   }
 
   if (phaseTimer > 1.2) {
-    phase = nextPhase;
+    phase = 'next-smash';
     phaseTimer = 0;
   }
 }
@@ -654,10 +674,14 @@ function updateNextSmash(dt) {
     return;
   }
 
-  phase = 'player-charge';
+  phase = 'charge';
   phaseTimer = 0;
   chargeAmount = 0;
   isDragging = false;
+  aiPower = 0;
+  aiChargeProgress = 0;
+  aiChargeTarget = 0;
+  enemyAbilityChecked = false;
 }
 
 function updateResolve(dt) {
@@ -666,7 +690,12 @@ function updateResolve(dt) {
 
   if (phaseTimer > 2.5) {
     phase = 'done';
-    const winner = enemyHP <= 0 ? 'player' : 'computer';
+    let winner;
+    if (playerHP <= 0 && enemyHP <= 0) {
+      winner = 'player'; // tie goes to player
+    } else {
+      winner = enemyHP <= 0 ? 'player' : 'computer';
+    }
     if (onRoundComplete) {
       onRoundComplete({
         winner,
@@ -691,192 +720,275 @@ function updateDamageEffects(dt) {
   }
 }
 
-// ---- Collision Handling ----
+// ---- Collision Handling (Simultaneous) ----
 
-function handleCollision(attacker, defender, attackerPhys, defenderPhys, ability, isPlayer) {
-  const speed = Math.abs(attackerPhys.vx);
-  const power = clamp(speed / 1200, 0.3, 1.2);
-  const damage = calculateDamage(attacker, power, defender, ability);
-  const knockback = calculateKnockback(attacker, defender);
+function handleSimultaneousCollision() {
+  // Use stored launch power — NOT collision speed, which gets compressed
+  // by the center-pull force. This gives a much wider damage range.
+  const power1 = launchPlayerPower;
+  const power2 = launchAiPower;
 
-  if (isPlayer) {
-    enemyHP = Math.max(0, enemyHP - damage);
-  } else {
-    playerHP = Math.max(0, playerHP - damage);
+  // Player damages enemy, enemy damages player
+  const playerResult = calculateDamage(playerTruck, power1, enemyTruck, playerAbilityActive);
+  const enemyResult = calculateDamage(enemyTruck, power2, playerTruck, enemyAbilityActive);
+  const playerDmg = playerResult.damage;
+  const enemyDmg = enemyResult.damage;
+
+  enemyHP = Math.max(0, enemyHP - playerDmg);
+  playerHP = Math.max(0, playerHP - enemyDmg);
+
+  // Handle ability effects (pass bonus info for display)
+  if (playerAbilityActive) {
+    applyAbilityEffects(playerAbilityActive, true, playerDmg, playerResult.abilityBonus);
+    playerAbilityActive = null;
+  }
+  if (enemyAbilityActive) {
+    applyAbilityEffects(enemyAbilityActive, false, enemyDmg, enemyResult.abilityBonus);
+    enemyAbilityActive = null;
   }
 
-  // Handle ability effects with distinct visuals
-  if (ability) {
-    const abilityColor = getAbilityColor(ability.type);
-    const label = getAbilityLabel(ability.type);
-    const targetPhys = isPlayer ? defenderPhys : attackerPhys;
-    const selfPhys = isPlayer ? attackerPhys : defenderPhys;
+  // Mutual knockback
+  const playerWeightFactor = (enemyTruck.stats.weight / 100) * 0.5 + 0.5;
+  const enemyWeightFactor = (playerTruck.stats.weight / 100) * 0.5 + 0.5;
+  const playerKnockback = calculateKnockback(enemyTruck, playerTruck);
+  const enemyKnockback = calculateKnockback(playerTruck, enemyTruck);
 
-    // Show ability label floating text
-    abilityTexts.push({
-      text: label,
-      x: targetPhys.x,
-      y: targetPhys.y - 90,
-      color: abilityColor,
-      life: 1.5,
-      maxLife: 1.5,
-    });
+  playerPhysics.vx *= -0.4;
+  enemyPhysics.vx *= -0.4;
+  playerPhysics.knockback((playerKnockback + 0.5) * playerWeightFactor);
+  enemyPhysics.knockback((enemyKnockback + 0.5) * enemyWeightFactor);
 
-    // Ability-colored sparks at collision point
-    if (particles) {
-      particles.emitCollisionSparks(
-        (attackerPhys.x + defenderPhys.x) / 2,
-        (attackerPhys.y + defenderPhys.y) / 2 - 20,
-        abilityColor, abilityColor, power * 0.8
-      );
-    }
-
-    switch (ability.type) {
-      case 'heal':
-        if (isPlayer) playerHP = Math.min(playerMaxHP, playerHP + 30);
-        else enemyHP = Math.min(enemyMaxHP, enemyHP + 30);
-        if (particles) particles.emitAbilitySparkle(selfPhys.x, selfPhys.y - 20, '#39ff14');
-        break;
-      case 'steal': {
-        const amt = 15;
-        if (isPlayer) {
-          enemyHP = Math.max(0, enemyHP - amt);
-          playerHP = Math.min(playerMaxHP, playerHP + amt);
-        } else {
-          playerHP = Math.max(0, playerHP - amt);
-          enemyHP = Math.min(enemyMaxHP, enemyHP + amt);
-        }
-        if (particles) {
-          particles.emitAbilitySparkle(targetPhys.x, targetPhys.y - 20, '#44ff88');
-          particles.emitAbilitySparkle(selfPhys.x, selfPhys.y - 20, '#44ff88');
-        }
-        break;
-      }
-      case 'direct-damage': {
-        const directDmg = ability.multiplier ? ability.multiplier : 30;
-        if (isPlayer) enemyHP = Math.max(0, enemyHP - directDmg);
-        else playerHP = Math.max(0, playerHP - directDmg);
-        if (particles) {
-          particles.emitCollisionSparks(targetPhys.x, targetPhys.y - 30, '#ffd21a', '#ffffff', 1.0);
-        }
-        flashAlpha = Math.max(flashAlpha, 0.5);
-        break;
-      }
-      case 'shield-boost': {
-        const shieldAmount = Math.round(damage * 0.3);
-        if (isPlayer) playerHP = Math.min(playerMaxHP, playerHP + shieldAmount);
-        else enemyHP = Math.min(enemyMaxHP, enemyHP + shieldAmount);
-        if (particles) particles.emitAbilitySparkle(selfPhys.x, selfPhys.y - 20, '#4488ff');
-        break;
-      }
-      case 'burn': {
-        const burnDmg = 15;
-        if (isPlayer) enemyHP = Math.max(0, enemyHP - burnDmg);
-        else playerHP = Math.max(0, playerHP - burnDmg);
-        if (particles) {
-          particles.emitFireTrail(targetPhys.x, targetPhys.y - 20, '#ff4400');
-          particles.emitFireTrail(targetPhys.x + 10, targetPhys.y - 30, '#ff6600');
-          particles.emitFireTrail(targetPhys.x - 10, targetPhys.y - 25, '#ff2200');
-        }
-        break;
-      }
-      case 'stun': {
-        const stunDmg = 10;
-        if (isPlayer) enemyHP = Math.max(0, enemyHP - stunDmg);
-        else playerHP = Math.max(0, playerHP - stunDmg);
-        if (particles) particles.emitAbilitySparkle(targetPhys.x, targetPhys.y - 30, '#aa88ff');
-        break;
-      }
-      case 'multi-hit': {
-        const extraHits = 2;
-        const extraDmg = Math.round(damage * 0.3);
-        for (let i = 0; i < extraHits; i++) {
-          if (isPlayer) enemyHP = Math.max(0, enemyHP - extraDmg);
-          else playerHP = Math.max(0, playerHP - extraDmg);
-        }
-        // Staggered spark bursts
-        if (particles) {
-          for (let i = 0; i < extraHits; i++) {
-            setTimeout(() => {
-              if (particles) {
-                particles.emitCollisionSparks(
-                  targetPhys.x + randomRange(-30, 30),
-                  targetPhys.y + randomRange(-40, 0),
-                  '#ff44aa', '#ffffff', 0.6
-                );
-              }
-            }, i * 150);
-          }
-        }
-        break;
-      }
-      case 'speed-boost': {
-        // Already handled by calculateDamage multiplier
-        if (particles) {
-          particles.emitFireTrail(selfPhys.x - 20 * selfPhys.facing, selfPhys.y - 15, '#ff6b1a');
-          particles.emitFireTrail(selfPhys.x - 30 * selfPhys.facing, selfPhys.y - 10, '#ffd21a');
-        }
-        break;
-      }
-      case 'dodge': {
-        // Reduce damage taken by healing back some
-        const dodgeHeal = Math.round(damage * 0.5);
-        if (isPlayer) playerHP = Math.min(playerMaxHP, playerHP + dodgeHeal);
-        else enemyHP = Math.min(enemyMaxHP, enemyHP + dodgeHeal);
-        if (particles) particles.emitAbilitySparkle(selfPhys.x, selfPhys.y - 20, '#88ffff');
-        break;
-      }
-      case 'random': {
-        const randomDmg = Math.round(randomRange(5, 60));
-        if (isPlayer) enemyHP = Math.max(0, enemyHP - randomDmg);
-        else playerHP = Math.max(0, playerHP - randomDmg);
-        if (particles) {
-          particles.emitCollisionSparks(targetPhys.x, targetPhys.y - 20, '#ff88ff', '#88ffff', 1.0);
-        }
-        break;
-      }
-    }
-  }
-
-  // Physics response - knockback scaled by weight stat
-  const weightFactor = (attacker.stats.weight / 100) * 0.5 + 0.5;
-  attackerPhys.vx *= -0.4;
-  defenderPhys.knockback((knockback + 0.5) * weightFactor);
-
-  // Collision visual effects - spark intensity scaled by smashDamage stat
-  const collisionX = (attackerPhys.x + defenderPhys.x) / 2;
-  const collisionY = (attackerPhys.y + defenderPhys.y) / 2 - 20;
+  // Collision visual effects
+  const collisionX = (playerPhysics.x + enemyPhysics.x) / 2;
+  const collisionY = (playerPhysics.y + enemyPhysics.y) / 2 - 20;
+  const combinedPower = (power1 + power2) / 2;
 
   if (particles) {
-    const sparkIntensity = power * (attacker.stats.smashDamage / 100) * 1.5;
-    particles.emitCollisionSparks(collisionX, collisionY, attacker.visual.primaryColor, defender.visual.primaryColor, sparkIntensity);
-    if (damage > 40) {
+    const sparkIntensity = combinedPower *
+      Math.max(playerTruck.stats.smashDamage, enemyTruck.stats.smashDamage) / 100 * 1.5;
+    particles.emitCollisionSparks(collisionX, collisionY,
+      playerTruck.visual.primaryColor, enemyTruck.visual.primaryColor, sparkIntensity);
+    if (playerDmg + enemyDmg > 60) {
       particles.emitCollisionSparks(collisionX, collisionY - 10, '#ffd21a', '#ff6b1a', sparkIntensity * 0.8);
     }
   }
 
-  playCrash(Math.min(power, 1));
+  playCrash(Math.min(combinedPower, 1));
 
-  // Screen shake scaled by weight + damage
-  const shakeIntensity = 8 + damage * 0.15 + (attacker.stats.weight / 100) * 8;
-  triggerShake(shakeIntensity, 0.4 + power * 0.2);
+  // Screen shake
+  const totalDmg = playerDmg + enemyDmg;
+  const shakeIntensity = 10 + totalDmg * 0.1 +
+    Math.max(playerTruck.stats.weight, enemyTruck.stats.weight) / 100 * 8;
+  triggerShake(shakeIntensity, 0.5);
 
-  if (damage > 40) flashAlpha = Math.max(flashAlpha, 0.6);
-  if (damage > 70) flashAlpha = Math.max(flashAlpha, 0.9);
+  if (totalDmg > 60) flashAlpha = Math.max(flashAlpha, 0.6);
+  if (totalDmg > 100) flashAlpha = Math.max(flashAlpha, 0.9);
 
-  // Floating damage number
+  // Lucky critical floating text
+  if (playerResult.critical) {
+    abilityTexts.push({
+      text: 'LUCKY HIT!',
+      x: enemyPhysics.x + randomRange(-30, 30),
+      y: enemyPhysics.y - 110,
+      color: '#ffd21a',
+      life: 1.2,
+      maxLife: 1.2,
+    });
+  }
+  if (enemyResult.critical) {
+    abilityTexts.push({
+      text: 'LUCKY HIT!',
+      x: playerPhysics.x + randomRange(-30, 30),
+      y: playerPhysics.y - 110,
+      color: '#ff6b1a',
+      life: 1.2,
+      maxLife: 1.2,
+    });
+  }
+
+  // Floating damage numbers
+  // Player's damage dealt to enemy (green - good for player)
   damageNumbers.push({
-    value: damage,
-    x: defenderPhys.x,
-    y: defenderPhys.y - 70,
+    value: playerDmg,
+    x: enemyPhysics.x,
+    y: enemyPhysics.y - 70,
     life: 1.5,
     maxLife: 1.5,
     alpha: 1,
     scale: 1,
-    isPlayer: !isPlayer,
-    isPerfect: power > 0.9,
-    isAbility: !!ability,
-    abilityColor: ability ? getAbilityColor(ability.type) : null,
+    isPlayer: false,
+    isCritical: playerResult.critical,
+    isPerfect: power1 > 0.9,
+  });
+  // Enemy's damage dealt to player (red - bad for player)
+  damageNumbers.push({
+    value: enemyDmg,
+    x: playerPhysics.x,
+    y: playerPhysics.y - 70,
+    life: 1.5,
+    maxLife: 1.5,
+    alpha: 1,
+    scale: 1,
+    isPlayer: true,
+    isCritical: enemyResult.critical,
+    isPerfect: power2 > 0.9,
+  });
+}
+
+function applyAbilityEffects(ability, isPlayer, damage, abilityBonus) {
+  const abilityColor = getAbilityColor(ability.type);
+  const label = getAbilityLabel(ability.type);
+  const targetPhys = isPlayer ? enemyPhysics : playerPhysics;
+  const selfPhys = isPlayer ? playerPhysics : enemyPhysics;
+
+  // Track extra damage/healing for display
+  let extraDmgTotal = 0;
+  let extraHealTotal = 0;
+
+  // Ability-colored sparks
+  if (particles) {
+    particles.emitCollisionSparks(
+      (playerPhysics.x + enemyPhysics.x) / 2,
+      (playerPhysics.y + enemyPhysics.y) / 2 - 20,
+      abilityColor, abilityColor, 0.8
+    );
+  }
+
+  switch (ability.type) {
+    case 'damage-boost':
+    case 'speed-boost':
+    case 'pierce':
+      // These modify the base damage calc — bonus already included in main damage number
+      extraDmgTotal = abilityBonus;
+      if (ability.type === 'speed-boost' && particles) {
+        particles.emitFireTrail(selfPhys.x - 20 * selfPhys.facing, selfPhys.y - 15, '#ff6b1a');
+        particles.emitFireTrail(selfPhys.x - 30 * selfPhys.facing, selfPhys.y - 10, '#ffd21a');
+      }
+      break;
+    case 'heal': {
+      const healAmt = 30;
+      if (isPlayer) playerHP = Math.min(playerMaxHP, playerHP + healAmt);
+      else enemyHP = Math.min(enemyMaxHP, enemyHP + healAmt);
+      extraHealTotal = healAmt;
+      if (particles) particles.emitAbilitySparkle(selfPhys.x, selfPhys.y - 20, '#39ff14');
+      break;
+    }
+    case 'steal': {
+      const amt = 15;
+      if (isPlayer) {
+        enemyHP = Math.max(0, enemyHP - amt);
+        playerHP = Math.min(playerMaxHP, playerHP + amt);
+      } else {
+        playerHP = Math.max(0, playerHP - amt);
+        enemyHP = Math.min(enemyMaxHP, enemyHP + amt);
+      }
+      extraDmgTotal = amt;
+      extraHealTotal = amt;
+      if (particles) {
+        particles.emitAbilitySparkle(targetPhys.x, targetPhys.y - 20, '#44ff88');
+        particles.emitAbilitySparkle(selfPhys.x, selfPhys.y - 20, '#44ff88');
+      }
+      break;
+    }
+    case 'direct-damage': {
+      const directDmg = ability.multiplier ? Math.round(ability.multiplier) : 30;
+      if (isPlayer) enemyHP = Math.max(0, enemyHP - directDmg);
+      else playerHP = Math.max(0, playerHP - directDmg);
+      extraDmgTotal = directDmg;
+      if (particles) {
+        particles.emitCollisionSparks(targetPhys.x, targetPhys.y - 30, '#ffd21a', '#ffffff', 1.0);
+      }
+      flashAlpha = Math.max(flashAlpha, 0.5);
+      break;
+    }
+    case 'shield-boost': {
+      const shieldAmount = Math.round(damage * 0.3);
+      if (isPlayer) playerHP = Math.min(playerMaxHP, playerHP + shieldAmount);
+      else enemyHP = Math.min(enemyMaxHP, enemyHP + shieldAmount);
+      extraHealTotal = shieldAmount;
+      if (particles) particles.emitAbilitySparkle(selfPhys.x, selfPhys.y - 20, '#4488ff');
+      break;
+    }
+    case 'burn': {
+      const burnDmg = 15;
+      if (isPlayer) enemyHP = Math.max(0, enemyHP - burnDmg);
+      else playerHP = Math.max(0, playerHP - burnDmg);
+      extraDmgTotal = burnDmg;
+      if (particles) {
+        particles.emitFireTrail(targetPhys.x, targetPhys.y - 20, '#ff4400');
+        particles.emitFireTrail(targetPhys.x + 10, targetPhys.y - 30, '#ff6600');
+        particles.emitFireTrail(targetPhys.x - 10, targetPhys.y - 25, '#ff2200');
+      }
+      break;
+    }
+    case 'stun': {
+      const stunDmg = 10;
+      if (isPlayer) enemyHP = Math.max(0, enemyHP - stunDmg);
+      else playerHP = Math.max(0, playerHP - stunDmg);
+      extraDmgTotal = stunDmg;
+      if (particles) particles.emitAbilitySparkle(targetPhys.x, targetPhys.y - 30, '#aa88ff');
+      break;
+    }
+    case 'multi-hit': {
+      const extraHits = 2;
+      const extraDmg = Math.round(damage * 0.3);
+      for (let i = 0; i < extraHits; i++) {
+        if (isPlayer) enemyHP = Math.max(0, enemyHP - extraDmg);
+        else playerHP = Math.max(0, playerHP - extraDmg);
+      }
+      extraDmgTotal = extraDmg * extraHits;
+      if (particles) {
+        for (let i = 0; i < extraHits; i++) {
+          setTimeout(() => {
+            if (particles) {
+              particles.emitCollisionSparks(
+                targetPhys.x + randomRange(-30, 30),
+                targetPhys.y + randomRange(-40, 0),
+                '#ff44aa', '#ffffff', 0.6
+              );
+            }
+          }, i * 150);
+        }
+      }
+      break;
+    }
+    case 'dodge': {
+      const dodgeHeal = Math.round(damage * 0.5);
+      if (isPlayer) playerHP = Math.min(playerMaxHP, playerHP + dodgeHeal);
+      else enemyHP = Math.min(enemyMaxHP, enemyHP + dodgeHeal);
+      extraHealTotal = dodgeHeal;
+      if (particles) particles.emitAbilitySparkle(selfPhys.x, selfPhys.y - 20, '#88ffff');
+      break;
+    }
+    case 'random': {
+      const randomDmg = Math.round(randomRange(5, 60));
+      if (isPlayer) enemyHP = Math.max(0, enemyHP - randomDmg);
+      else playerHP = Math.max(0, playerHP - randomDmg);
+      extraDmgTotal = randomDmg;
+      if (particles) {
+        particles.emitCollisionSparks(targetPhys.x, targetPhys.y - 20, '#ff88ff', '#88ffff', 1.0);
+      }
+      break;
+    }
+  }
+
+  // Build the ability label with numbers so the player sees how much it did
+  let displayText = label;
+  if (extraDmgTotal > 0 && extraHealTotal > 0) {
+    displayText = `${label} -${extraDmgTotal} / +${extraHealTotal}`;
+  } else if (extraDmgTotal > 0) {
+    displayText = `${label} -${extraDmgTotal}`;
+  } else if (extraHealTotal > 0) {
+    displayText = `${label} +${extraHealTotal}`;
+  }
+
+  abilityTexts.push({
+    text: displayText,
+    x: targetPhys.x,
+    y: targetPhys.y - 90,
+    color: abilityColor,
+    life: 1.8,
+    maxLife: 1.8,
   });
 }
 
@@ -901,7 +1013,7 @@ function render(ctx, w, h, dt) {
   // Draw ground with fire edges
   drawGround(ctx, w, h);
 
-  // Draw trucks
+  // Draw trucks (BIGGER!)
   const playerDamageRatio = 1 - (playerHP / playerMaxHP);
   const enemyDamageRatio = 1 - (enemyHP / enemyMaxHP);
 
@@ -912,13 +1024,12 @@ function render(ctx, w, h, dt) {
       ctx.rotate(playerPhysics.rotation);
       ctx.translate(-playerPhysics.x, -playerPhysics.y);
     }
-    drawTruck(ctx, playerTruck, playerPhysics.x, playerPhysics.y, scaleX * 0.7, {
+    drawTruck(ctx, playerTruck, playerPhysics.x, playerPhysics.y, scaleX * TRUCK_SCALE, {
       flip: false,
       damageLevel: playerDamageRatio,
       glowing: playerAbilityActive !== null,
     });
-    // Shield glow for high-shield trucks
-    if (playerTruck.stats.shield > 60 && phase === 'player-charge') {
+    if (playerTruck.stats.shield > 60 && phase === 'charge') {
       drawShieldGlow(ctx, playerPhysics.x, playerPhysics.y, playerTruck.stats.shield, '#4488ff');
     }
     ctx.restore();
@@ -931,23 +1042,25 @@ function render(ctx, w, h, dt) {
       ctx.rotate(enemyPhysics.rotation);
       ctx.translate(-enemyPhysics.x, -enemyPhysics.y);
     }
-    drawTruck(ctx, enemyTruck, enemyPhysics.x, enemyPhysics.y, scaleX * 0.7, {
+    drawTruck(ctx, enemyTruck, enemyPhysics.x, enemyPhysics.y, scaleX * TRUCK_SCALE, {
       flip: true,
       damageLevel: enemyDamageRatio,
       glowing: enemyAbilityActive !== null,
     });
-    if (enemyTruck.stats.shield > 60 && (phase === 'ai-charge' || phase === 'player-charge')) {
+    if (enemyTruck.stats.shield > 60 && phase === 'charge') {
       drawShieldGlow(ctx, enemyPhysics.x, enemyPhysics.y, enemyTruck.stats.shield, '#4488ff');
     }
     ctx.restore();
   }
 
-  // Speed lines during launches
-  if (phase === 'player-launch' && Math.abs(playerPhysics.vx) > 200) {
-    drawSpeedLines(ctx, playerPhysics, playerTruck);
-  }
-  if (phase === 'ai-launch' && Math.abs(enemyPhysics.vx) > 200) {
-    drawSpeedLines(ctx, enemyPhysics, enemyTruck);
+  // Speed lines during launch (both trucks simultaneously)
+  if (phase === 'launch') {
+    if (Math.abs(playerPhysics.vx) > 200) {
+      drawSpeedLines(ctx, playerPhysics, playerTruck);
+    }
+    if (Math.abs(enemyPhysics.vx) > 200) {
+      drawSpeedLines(ctx, enemyPhysics, enemyTruck);
+    }
   }
 
   // Background embers
@@ -962,8 +1075,11 @@ function render(ctx, w, h, dt) {
   // Ability floating texts
   drawAbilityTexts(ctx);
 
+  // Health bars
+  drawHealthBars(ctx, w, h);
+
   // Power meter during charge phase
-  if (phase === 'player-charge') {
+  if (phase === 'charge') {
     drawPowerMeter(ctx, w, h);
   }
 
@@ -985,6 +1101,104 @@ function render(ctx, w, h, dt) {
 }
 
 // ---- Drawing Helpers ----
+
+function drawHealthBars(ctx, w, h) {
+  if (!playerTruck || !enemyTruck) return;
+
+  const barW = w * 0.3;
+  const barH = 12;
+  const barY = h * 0.06;
+
+  // Player health bar (left side, above player area)
+  const playerBarX = playerPhysics.restX - barW / 2;
+  drawSingleHealthBar(ctx, playerBarX, barY, barW, barH,
+    playerHP, playerMaxHP, playerTruck.name, playerTruck.visual.primaryColor, false);
+
+  // Enemy health bar (right side, above enemy area)
+  const enemyBarX = enemyPhysics.restX - barW / 2;
+  drawSingleHealthBar(ctx, enemyBarX, barY, barW, barH,
+    enemyHP, enemyMaxHP, enemyTruck.name, enemyTruck.visual.primaryColor, true);
+}
+
+function drawSingleHealthBar(ctx, x, y, w, h, hp, maxHP, name, truckColor, isEnemy) {
+  const hpPercent = clamp(hp / maxHP, 0, 1);
+
+  // Name label
+  ctx.save();
+  ctx.font = `bold ${10 * scaleX}px "Bangers", sans-serif`;
+  ctx.textAlign = isEnemy ? 'right' : 'left';
+  ctx.fillStyle = '#ffffff';
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 2;
+  ctx.globalAlpha = 0.9;
+  const nameX = isEnemy ? x + w : x;
+  ctx.strokeText(name.toUpperCase(), nameX, y - 4);
+  ctx.fillText(name.toUpperCase(), nameX, y - 4);
+  ctx.restore();
+
+  // Background
+  ctx.save();
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.roundRect(x, y, w, h, 6);
+  ctx.fill();
+  ctx.stroke();
+
+  // Clipped fill area
+  ctx.beginPath();
+  ctx.roundRect(x + 1, y + 1, w - 2, h - 2, 5);
+  ctx.clip();
+
+  const fillW = (w - 2) * hpPercent;
+  let fillColor;
+  if (hpPercent > 0.5) {
+    fillColor = '#39ff14';
+  } else if (hpPercent > 0.25) {
+    fillColor = '#ffd21a';
+  } else {
+    fillColor = '#ff2d2d';
+  }
+
+  // Fill from the correct side
+  const fillX = isEnemy ? x + 1 + (w - 2) - fillW : x + 1;
+
+  // Gradient fill
+  const grad = ctx.createLinearGradient(fillX, y, fillX + fillW, y);
+  grad.addColorStop(0, fillColor);
+  grad.addColorStop(1, fillColor + 'aa');
+  ctx.fillStyle = grad;
+  ctx.fillRect(fillX, y + 1, fillW, h - 2);
+
+  // Shine
+  ctx.globalAlpha = 0.15;
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(x + 1, y + 1, w - 2, (h - 2) / 2);
+
+  // Damage flash when HP is low
+  if (hpPercent < 0.3 && hpPercent > 0) {
+    const pulse = Math.sin(performance.now() / 200) * 0.15 + 0.1;
+    ctx.globalAlpha = pulse;
+    ctx.fillStyle = '#ff0000';
+    ctx.fillRect(x + 1, y + 1, w - 2, h - 2);
+  }
+
+  ctx.restore();
+
+  // HP text
+  ctx.save();
+  ctx.font = `bold ${9 * scaleX}px "Bangers", sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#ffffff';
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 2;
+  ctx.globalAlpha = 0.9;
+  const hpText = `${Math.ceil(hp)} / ${maxHP}`;
+  ctx.strokeText(hpText, x + w / 2, y + h - 1);
+  ctx.fillText(hpText, x + w / 2, y + h - 1);
+  ctx.restore();
+}
 
 function drawShieldGlow(ctx, x, y, shieldStat, color) {
   const intensity = (shieldStat - 60) / 40;
@@ -1296,13 +1510,15 @@ function drawDamageNumbers(ctx) {
   damageNumbers.forEach(d => {
     ctx.save();
     ctx.globalAlpha = d.alpha;
-    const fontSize = (28 + d.value * 0.12) * d.scale;
+    // Bigger numbers for bigger damage — really sells the difference
+    const fontSize = (24 + d.value * 0.2) * d.scale;
     ctx.font = `bold ${fontSize}px "Bangers", sans-serif`;
     ctx.textAlign = 'center';
 
-    if (d.isAbility && d.abilityColor) {
-      ctx.fillStyle = d.abilityColor;
-      ctx.strokeStyle = '#000';
+    if (d.isCritical) {
+      // Lucky crits get gold treatment
+      ctx.fillStyle = '#ffd21a';
+      ctx.strokeStyle = '#aa4400';
     } else if (d.isPerfect) {
       ctx.fillStyle = '#ffd21a';
       ctx.strokeStyle = '#aa6600';
@@ -1311,7 +1527,9 @@ function drawDamageNumbers(ctx) {
       ctx.strokeStyle = '#000';
     }
     ctx.lineWidth = 3;
-    const text = d.isPerfect ? `PERFECT! -${d.value}` : `-${d.value}`;
+    let text = `-${d.value}`;
+    if (d.isPerfect) text = `PERFECT! -${d.value}`;
+    else if (d.isCritical) text = `CRIT! -${d.value}`;
     ctx.strokeText(text, d.x, d.y);
     ctx.fillText(text, d.x, d.y);
     ctx.restore();
@@ -1363,14 +1581,14 @@ function drawPhaseText(ctx, w, h) {
   let color = '#ffffff';
 
   switch (phase) {
-    case 'ai-charge':
-    case 'ai-launch':
-      text = 'ENEMY TURN!';
-      color = '#ff6b1a';
-      break;
     case 'resolve':
-      text = playerHP <= 0 ? 'DESTROYED!' : 'CRUSHED IT!';
-      color = playerHP <= 0 ? '#ff2d2d' : '#39ff14';
+      if (playerHP <= 0 && enemyHP <= 0) {
+        text = 'MUTUAL DESTRUCTION!';
+        color = '#ffd21a';
+      } else {
+        text = playerHP <= 0 ? 'DESTROYED!' : 'CRUSHED IT!';
+        color = playerHP <= 0 ? '#ff2d2d' : '#39ff14';
+      }
       break;
   }
 

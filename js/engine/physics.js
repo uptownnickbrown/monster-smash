@@ -115,30 +115,53 @@ export class TruckPhysics {
 }
 
 // Calculate damage from collision
+// Returns { damage, critical, abilityBonus } for richer display
 export function calculateDamage(attackerTruck, power, defenderTruck, abilityActive = null) {
-  let smashDamage = attackerTruck.stats.smashDamage;
-  let speedMultiplier = 1.0 + (attackerTruck.stats.speed / 100) * 0.5;
-  let defense = defenderTruck.stats.shield / 200;
+  const baseDamage = attackerTruck.stats.smashDamage;
+  const speedMultiplier = 1.0 + (attackerTruck.stats.speed / 100) * 0.5;
+  const baseDefense = defenderTruck.stats.shield / 200;
 
-  // Apply ability modifiers
-  if (abilityActive) {
-    switch (abilityActive.type) {
-      case 'damage-boost':
-        smashDamage *= abilityActive.multiplier || 2;
-        break;
-      case 'speed-boost':
-        speedMultiplier *= abilityActive.multiplier || 1.5;
-        break;
-      case 'pierce':
-        defense *= 0.5; // ignore half of shield
-        break;
-    }
+  // Random variance: ±30% — makes every hit feel different
+  const variance = 0.7 + Math.random() * 0.6; // 0.7 to 1.3
+
+  // Lucky critical: 10% chance of 1.8x
+  const isCritical = Math.random() < 0.10;
+  const criticalMult = isCritical ? 1.8 : 1.0;
+
+  // Calculate base damage (without ability)
+  const rawBase = baseDamage * power * speedMultiplier * variance * criticalMult;
+  const baseResult = Math.round(rawBase * (1 - baseDefense));
+
+  if (!abilityActive) {
+    return { damage: Math.max(baseResult, 5), critical: isCritical, abilityBonus: 0 };
   }
 
-  const rawDamage = smashDamage * power * speedMultiplier;
-  const finalDamage = Math.round(rawDamage * (1 - defense));
+  // Calculate with ability modifiers applied
+  let abilitySmash = baseDamage;
+  let abilitySpeedMult = speedMultiplier;
+  let abilityDefense = baseDefense;
 
-  return Math.max(finalDamage, 5); // minimum 5 damage
+  switch (abilityActive.type) {
+    case 'damage-boost':
+      abilitySmash *= abilityActive.multiplier || 2;
+      break;
+    case 'speed-boost':
+      abilitySpeedMult *= abilityActive.multiplier || 1.5;
+      break;
+    case 'pierce':
+      abilityDefense *= 0.5; // ignore half of shield
+      break;
+  }
+
+  const rawAbility = abilitySmash * power * abilitySpeedMult * variance * criticalMult;
+  const abilityResult = Math.round(rawAbility * (1 - abilityDefense));
+  const bonus = abilityResult - baseResult;
+
+  return {
+    damage: Math.max(abilityResult, 5),
+    critical: isCritical,
+    abilityBonus: Math.max(bonus, 0),
+  };
 }
 
 // Calculate weight-based knockback

@@ -27,8 +27,28 @@ export function getByRarity(rarity) {
 export function getRandom(count, exclude = []) {
   const excludeSet = new Set(exclude.map(t => typeof t === 'string' ? t : t.id));
   const available = allTrucks.filter(t => !excludeSet.has(t.id));
-  const shuffled = [...available].sort(() => Math.random() - 0.5);
-  return shuffled.slice(0, count);
+
+  // Weight higher rarities so they show up more often in draft picks.
+  // Without this, legendaries (4 trucks) almost never appear vs commons (14).
+  const rarityWeight = { legendary: 5, epic: 3, rare: 1.5, common: 1 };
+  const weighted = available.map(t => ({
+    truck: t,
+    weight: rarityWeight[t.rarity] || 1,
+  }));
+
+  const picked = [];
+  for (let i = 0; i < count && weighted.length > 0; i++) {
+    const totalWeight = weighted.reduce((sum, w) => sum + w.weight, 0);
+    let roll = Math.random() * totalWeight;
+    let idx = 0;
+    for (idx = 0; idx < weighted.length; idx++) {
+      roll -= weighted[idx].weight;
+      if (roll <= 0) break;
+    }
+    picked.push(weighted[idx].truck);
+    weighted.splice(idx, 1);
+  }
+  return picked;
 }
 
 // Pick computer team that roughly matches the player's team rarity
