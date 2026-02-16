@@ -33,7 +33,7 @@ export function createTruckCard(truck, { onSelect, onDeselect, isSelected = fals
   // Card inner content
   card.innerHTML = `
     <div class="truck-card__preview">
-      <canvas class="truck-card__canvas" width="160" height="100"></canvas>
+      <canvas class="truck-card__canvas" width="200" height="130"></canvas>
       <div class="truck-card__rarity-badge" style="background: ${rarity.color}">${rarity.label}</div>
       ${truck.id === 'henrys-hammer' ? '<div class="truck-card__special-badge">HENRY\'S PICK!</div>' : ''}
       <div class="truck-card__selected-check">&#x2713;</div>
@@ -53,16 +53,16 @@ export function createTruckCard(truck, { onSelect, onDeselect, isSelected = fals
   const canvas = card.querySelector('.truck-card__canvas');
   const ctx = canvas.getContext('2d');
   try {
-    renderTruckToCanvas(ctx, truck, 160, 100);
+    renderTruckToCanvas(ctx, truck, 200, 130);
   } catch (e) {
     // Fallback if renderer errors
     ctx.fillStyle = truck.visual?.primaryColor || '#666';
-    ctx.fillRect(40, 30, 80, 40);
+    ctx.fillRect(40, 30, 120, 60);
   }
 
-  // Add stat bars
+  // Add stat bars (4 core stats — airTime is hidden, it's just a physics modifier)
   const statsContainer = card.querySelector('.truck-card__stats');
-  const statOrder = ['smashDamage', 'speed', 'shield', 'weight', 'airTime'];
+  const statOrder = ['smashDamage', 'speed', 'shield', 'weight'];
   statOrder.forEach(stat => {
     const value = truck.stats?.[stat] || 0;
     statsContainer.appendChild(createStatBar(stat, value));
@@ -164,7 +164,7 @@ function injectCardStyles() {
     /* Preview area */
     .truck-card__preview {
       position: relative;
-      height: 100px;
+      height: 130px;
       background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-surface) 100%);
       display: flex;
       align-items: center;
@@ -173,33 +173,33 @@ function injectCardStyles() {
     }
 
     .truck-card__canvas {
-      width: 160px;
-      height: 100px;
+      width: 200px;
+      height: 130px;
     }
 
     .truck-card__rarity-badge {
       position: absolute;
-      top: 4px;
-      right: 4px;
+      top: 6px;
+      right: 6px;
       font-family: var(--font-body);
-      font-size: 8px;
+      font-size: 10px;
       letter-spacing: 1px;
       color: #fff;
-      padding: 2px 6px;
-      border-radius: 3px;
+      padding: 3px 8px;
+      border-radius: 4px;
       text-shadow: 0 1px 2px rgba(0,0,0,0.5);
     }
 
     .truck-card__special-badge {
       position: absolute;
-      top: 4px;
-      left: 4px;
+      top: 6px;
+      left: 6px;
       font-family: var(--font-accent);
-      font-size: 9px;
+      font-size: 11px;
       color: var(--fire-yellow);
       background: rgba(0, 0, 0, 0.6);
-      padding: 2px 6px;
-      border-radius: 3px;
+      padding: 3px 8px;
+      border-radius: 4px;
       border: 1px solid var(--fire-yellow);
       text-shadow: 0 0 8px var(--fire-yellow);
       animation: legendaryPulse 2s ease-in-out infinite;
@@ -230,12 +230,12 @@ function injectCardStyles() {
 
     /* Info area */
     .truck-card__info {
-      padding: 8px 10px;
+      padding: 10px 14px;
     }
 
     .truck-card__name {
       font-family: var(--font-heading);
-      font-size: 15px;
+      font-size: 20px;
       color: var(--chrome-bright);
       letter-spacing: 1px;
       line-height: 1.1;
@@ -243,33 +243,33 @@ function injectCardStyles() {
 
     .truck-card__tagline {
       font-family: var(--font-accent);
-      font-size: 10px;
+      font-size: 13px;
       color: var(--rarity-color, var(--chrome-dark));
-      margin-top: 1px;
+      margin-top: 2px;
       opacity: 0.8;
     }
 
     .truck-card__stats {
-      margin-top: 6px;
+      margin-top: 8px;
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 3px;
     }
 
     .truck-card__ability {
-      margin-top: 6px;
+      margin-top: 8px;
       display: flex;
       align-items: center;
-      gap: 4px;
-      font-size: 10px;
+      gap: 6px;
+      font-size: 13px;
       color: var(--chrome);
-      padding: 3px 6px;
+      padding: 5px 8px;
       background: rgba(255, 255, 255, 0.04);
-      border-radius: 4px;
+      border-radius: 6px;
     }
 
     .truck-card__ability-icon {
-      font-size: 12px;
+      font-size: 16px;
     }
 
     .truck-card__ability-name {

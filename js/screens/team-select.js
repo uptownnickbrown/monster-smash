@@ -266,8 +266,8 @@ function injectTeamSelectStyles() {
     }
 
     .draft-card {
-      flex: 0 1 220px;
-      max-width: 220px;
+      flex: 0 1 280px;
+      max-width: 280px;
       transition: all 0.4s ease;
       cursor: pointer;
     }
@@ -399,7 +399,7 @@ function injectTeamSelectStyles() {
       .draft-header { padding-bottom: 4px; }
       .draft-title { font-size: 24px; }
       .draft-choices { gap: 10px; padding: 4px 0; }
-      .draft-card { flex: 0 1 180px; max-width: 180px; }
+      .draft-card { flex: 0 1 220px; max-width: 220px; }
       .team-dock { padding: 6px 10px; gap: 8px; }
       .dock-slot { width: 70px; height: 42px; }
     }

@@ -62,27 +62,27 @@ export function injectStatBarStyles() {
       display: flex;
       align-items: center;
       gap: 6px;
-      height: 14px;
-      font-size: 9px;
+      height: 18px;
+      font-size: 11px;
     }
     .stat-label {
       font-family: var(--font-body);
       color: var(--chrome);
-      width: 42px;
+      width: 48px;
       flex-shrink: 0;
       text-align: right;
       letter-spacing: 1px;
     }
     .stat-track {
       flex: 1;
-      height: 6px;
+      height: 8px;
       background: rgba(255, 255, 255, 0.08);
-      border-radius: 3px;
+      border-radius: 4px;
       overflow: hidden;
     }
     .stat-fill {
       height: 100%;
-      border-radius: 3px;
+      border-radius: 4px;
       transition: width 0.4s ease;
     }
   `;
