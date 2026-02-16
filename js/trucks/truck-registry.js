@@ -30,7 +30,7 @@ export function getRandom(count, exclude = []) {
 
   // Weight higher rarities so they show up more often in draft picks.
   // Without this, legendaries (4 trucks) almost never appear vs commons (14).
-  const rarityWeight = { legendary: 5, epic: 3, rare: 1.5, common: 1 };
+  const rarityWeight = { legendary: 3, epic: 2, rare: 1.2, common: 1 };
   const weighted = available.map(t => ({
     truck: t,
     weight: rarityWeight[t.rarity] || 1,
