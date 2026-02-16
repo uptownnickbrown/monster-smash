@@ -1,18 +1,20 @@
 // ============================================
 // MONSTER SMASH - Title Screen
-// Stadium lights, chrome title, dirt & fire
+// Stadium lights, chrome title, truck showcase
+// Tap any truck to see its stats & hear it rev!
 // ============================================
 
-import { setState } from '../game-state.js';
+import { setState, getState, onStateChange } from '../game-state.js';
+import { renderTruckToImage } from '../trucks/truck-renderer.js';
+import { playEngineRev, playClick, playPowerUp } from '../audio/sound-effects.js';
 
 let screenEl = null;
 let sparksInterval = null;
+let stateCleanup = null;
+let popupTimeout = null;
 
 export function createTitleScreen(container) {
-  // Clean up any previous instance
-  if (screenEl) {
-    destroyTitleScreen();
-  }
+  if (screenEl) destroyTitleScreen();
 
   screenEl = document.createElement('div');
   screenEl.className = 'screen title-screen active';
@@ -26,6 +28,8 @@ export function createTitleScreen(container) {
         <div class="spotlight spotlight-3"></div>
       </div>
     </div>
+
+    <div class="title-truck-showcase" id="truck-showcase"></div>
 
     <div class="title-content">
       <div class="title-sparks" aria-hidden="true"></div>
@@ -43,17 +47,14 @@ export function createTitleScreen(container) {
 
       <div class="title-tagline">PICK YOUR TEAM. CRUSH THE COMPETITION.</div>
 
-      <div class="title-trucks" aria-hidden="true">
-        <div class="title-truck title-truck-left">&#x1F69B;</div>
-        <div class="title-truck title-truck-right">&#x1F69B;</div>
-      </div>
-
       <button class="btn btn-fire title-play-btn" type="button">
         <span class="title-play-text">&#x25B6; PLAY</span>
       </button>
 
       <div class="title-tire-tracks" aria-hidden="true"></div>
     </div>
+
+    <div class="truck-info-popup" id="truck-info-popup"></div>
   `;
 
   // Add styles
@@ -70,25 +71,172 @@ export function createTitleScreen(container) {
   const playBtn = screenEl.querySelector('.title-play-btn');
   playBtn.addEventListener('pointerdown', handlePlay);
 
+  // Dismiss popup on any tap outside trucks
+  screenEl.addEventListener('pointerdown', (e) => {
+    if (!e.target.closest('.showcase-truck') && !e.target.closest('.truck-info-popup')) {
+      dismissPopup();
+    }
+  });
+
   // Start sparks effect after title animation
-  setTimeout(() => {
-    startSparks();
-  }, 1500);
+  setTimeout(() => startSparks(), 1500);
+
+  // Check if trucks are already loaded
+  const state = getState();
+  if (state.allTrucks && state.allTrucks.length > 0) {
+    setTimeout(() => populateShowcase(state.allTrucks), 200);
+  }
+
+  // Listen for truck load
+  stateCleanup = onStateChange((s) => {
+    if (s.allTrucks && s.allTrucks.length > 0) {
+      const showcase = screenEl?.querySelector('#truck-showcase');
+      if (showcase && showcase.children.length === 0) {
+        populateShowcase(s.allTrucks);
+      }
+    }
+  });
 
   return screenEl;
 }
 
+// ---- Truck Showcase ----
+
+function populateShowcase(trucks) {
+  const showcase = screenEl?.querySelector('#truck-showcase');
+  if (!showcase) return;
+
+  // Sort: legendaries first, then by name within rarity
+  const rarityOrder = { legendary: 0, epic: 1, rare: 2, common: 3 };
+  const sorted = [...trucks].sort((a, b) => {
+    const diff = (rarityOrder[a.rarity] ?? 4) - (rarityOrder[b.rarity] ?? 4);
+    if (diff !== 0) return diff;
+    return a.name.localeCompare(b.name);
+  });
+
+  sorted.forEach((truck, i) => {
+    const imgSrc = renderTruckToImage(truck, 120, 96);
+    const wrapper = document.createElement('div');
+    wrapper.className = `showcase-truck showcase-truck--${truck.rarity}`;
+    wrapper.style.setProperty('--float-delay', `${(i * 0.37) % 5}s`);
+
+    wrapper.innerHTML = `
+      <img src="${imgSrc}" alt="${truck.name}" draggable="false">
+      <div class="showcase-truck__name">${truck.name}</div>
+    `;
+
+    wrapper.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      showTruckPopup(truck, wrapper);
+      playTruckSound(truck.rarity);
+    });
+
+    showcase.appendChild(wrapper);
+  });
+}
+
+function showTruckPopup(truck, fromEl) {
+  const popup = screenEl?.querySelector('#truck-info-popup');
+  if (!popup) return;
+
+  if (popupTimeout) clearTimeout(popupTimeout);
+
+  const rarityColor = getRarityColor(truck.rarity);
+
+  const statEntries = [
+    ['smashDamage', 'SMASH', '#ff2d2d'],
+    ['speed', 'SPEED', '#ffd21a'],
+    ['shield', 'SHIELD', '#4488ff'],
+    ['weight', 'WEIGHT', '#8a8d96'],
+  ];
+
+  const statsHTML = statEntries.map(([key, label, color]) => {
+    const val = truck.stats?.[key] || 0;
+    return `
+      <div class="popup-stat">
+        <span class="popup-stat__label">${label}</span>
+        <div class="popup-stat__bar">
+          <div class="popup-stat__fill" style="width:${Math.min(val, 100)}%;background:${color}"></div>
+        </div>
+        <span class="popup-stat__value">${val}</span>
+      </div>
+    `;
+  }).join('');
+
+  popup.innerHTML = `
+    <div class="popup-rarity" style="color:${rarityColor}">${truck.rarity.toUpperCase()}</div>
+    <div class="popup-name">${truck.name}</div>
+    <div class="popup-tagline">${truck.tagline || ''}</div>
+    <div class="popup-stats">${statsHTML}</div>
+    <div class="popup-ability">
+      <span class="popup-ability__icon">${getAbilityIcon(truck.specialAbility?.type)}</span>
+      <span class="popup-ability__name">${truck.specialAbility?.name || 'None'}</span>
+    </div>
+    <div class="popup-desc">${truck.specialAbility?.description || ''}</div>
+  `;
+
+  popup.style.borderColor = rarityColor;
+  popup.style.boxShadow = `0 0 25px ${rarityColor}50`;
+
+  // Position near the tapped truck
+  const rect = fromEl.getBoundingClientRect();
+  const containerRect = screenEl.getBoundingClientRect();
+
+  const popupW = 260;
+  const popupH = 300;
+  let left = rect.left - containerRect.left + rect.width / 2 - popupW / 2;
+  let top = rect.top - containerRect.top - popupH - 10;
+
+  // Keep on screen
+  left = Math.max(10, Math.min(left, containerRect.width - popupW - 10));
+  if (top < 10) top = rect.bottom - containerRect.top + 10;
+  top = Math.max(10, Math.min(top, containerRect.height - popupH - 10));
+
+  popup.style.left = left + 'px';
+  popup.style.top = top + 'px';
+  popup.classList.add('truck-info-popup--visible');
+
+  popupTimeout = setTimeout(() => dismissPopup(), 4000);
+}
+
+function dismissPopup() {
+  const popup = screenEl?.querySelector('#truck-info-popup');
+  if (popup) popup.classList.remove('truck-info-popup--visible');
+  if (popupTimeout) { clearTimeout(popupTimeout); popupTimeout = null; }
+}
+
+function playTruckSound(rarity) {
+  switch (rarity) {
+    case 'legendary': playPowerUp(); break;
+    case 'epic': playEngineRev(0.4); break;
+    case 'rare': playEngineRev(0.25); break;
+    default: playClick();
+  }
+}
+
+function getRarityColor(rarity) {
+  return { common: '#8a8d96', rare: '#4488ff', epic: '#b44aff', legendary: '#ffaa00' }[rarity] || '#fff';
+}
+
+function getAbilityIcon(type) {
+  return {
+    'damage-boost': '\u{1F4A5}', 'direct-damage': '\u26A1', 'heal': '\u{1F49A}',
+    'shield-boost': '\u{1F6E1}\uFE0F', 'speed-boost': '\u{1F680}', 'stun': '\u26A1',
+    'burn': '\u{1F525}', 'pierce': '\u{1F5E1}\uFE0F', 'multi-hit': '\u{1F4AB}',
+    'dodge': '\u{1F47B}', 'steal': '\u{1F9B7}', 'random': '\u{1F3B2}',
+  }[type] || '\u2728';
+}
+
+// ---- Play / Sparks / Destroy ----
+
 function handlePlay(e) {
   e.preventDefault();
+  dismissPopup();
   const btn = e.currentTarget;
   btn.classList.add('title-play-pressed');
-
-  // Transition out
   screenEl.classList.add('title-exit');
-
-  setTimeout(() => {
-    setState({ screen: 'team-select' });
-  }, 400);
+  setTimeout(() => setState({ screen: 'team-select' }), 400);
 }
 
 function startSparks() {
@@ -96,41 +244,32 @@ function startSparks() {
   if (!container) return;
 
   sparksInterval = setInterval(() => {
-    if (!container.isConnected) {
-      clearInterval(sparksInterval);
-      return;
-    }
+    if (!container.isConnected) { clearInterval(sparksInterval); return; }
 
     const spark = document.createElement('div');
     spark.className = 'spark';
-
-    const x = 30 + Math.random() * 40; // center area
+    const x = 30 + Math.random() * 40;
     const startY = 35 + Math.random() * 15;
     spark.style.left = x + '%';
     spark.style.top = startY + '%';
     spark.style.setProperty('--sx', (Math.random() - 0.5) * 120 + 'px');
     spark.style.setProperty('--sy', -(30 + Math.random() * 80) + 'px');
-
     const hue = Math.random() > 0.5 ? 30 + Math.random() * 20 : 10 + Math.random() * 10;
     spark.style.background = `hsl(${hue}, 100%, ${60 + Math.random() * 30}%)`;
     spark.style.width = spark.style.height = (2 + Math.random() * 3) + 'px';
-
     container.appendChild(spark);
-
     setTimeout(() => spark.remove(), 800);
   }, 100);
 }
 
 export function destroyTitleScreen() {
-  if (sparksInterval) {
-    clearInterval(sparksInterval);
-    sparksInterval = null;
-  }
-  if (screenEl) {
-    screenEl.remove();
-    screenEl = null;
-  }
+  if (sparksInterval) { clearInterval(sparksInterval); sparksInterval = null; }
+  if (stateCleanup) { stateCleanup(); stateCleanup = null; }
+  if (popupTimeout) { clearTimeout(popupTimeout); popupTimeout = null; }
+  if (screenEl) { screenEl.remove(); screenEl = null; }
 }
+
+// ---- Styles ----
 
 function getTitleStyles() {
   return `
@@ -149,6 +288,206 @@ function getTitleStyles() {
       width: 100%;
       height: 100%;
       padding: 20px;
+    }
+
+    /* ---- Truck Showcase Grid ---- */
+    .title-truck-showcase {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-content: center;
+      gap: 6px;
+      padding: 10px;
+      overflow: hidden;
+      -webkit-mask-image: radial-gradient(
+        ellipse 55% 48% at 50% 42%,
+        transparent 0%,
+        transparent 35%,
+        rgba(0,0,0,0.2) 55%,
+        rgba(0,0,0,0.6) 75%,
+        rgba(0,0,0,1) 100%
+      );
+      mask-image: radial-gradient(
+        ellipse 55% 48% at 50% 42%,
+        transparent 0%,
+        transparent 35%,
+        rgba(0,0,0,0.2) 55%,
+        rgba(0,0,0,0.6) 75%,
+        rgba(0,0,0,1) 100%
+      );
+    }
+
+    .showcase-truck {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      pointer-events: auto;
+      opacity: 0;
+      animation: showcaseFadeIn 0.5s ease forwards;
+      animation-delay: var(--float-delay, 0s);
+      transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+
+    .showcase-truck:active {
+      transform: scale(1.2);
+    }
+
+    .showcase-truck img {
+      width: 100px;
+      height: 80px;
+      object-fit: contain;
+      filter: brightness(0.8);
+      transition: filter 0.2s;
+    }
+
+    .showcase-truck:active img {
+      filter: brightness(1.2);
+    }
+
+    .showcase-truck--legendary img {
+      filter: brightness(0.9) drop-shadow(0 0 6px rgba(255,170,0,0.5));
+    }
+
+    .showcase-truck--epic img {
+      filter: brightness(0.85) drop-shadow(0 0 4px rgba(180,74,255,0.4));
+    }
+
+    .showcase-truck__name {
+      font-family: var(--font-body);
+      font-size: 8px;
+      color: var(--chrome-dark);
+      letter-spacing: 1px;
+      text-align: center;
+      margin-top: -4px;
+      opacity: 0.6;
+    }
+
+    .showcase-truck--legendary .showcase-truck__name { color: #ffaa00; opacity: 0.9; }
+    .showcase-truck--epic .showcase-truck__name { color: #b44aff; opacity: 0.8; }
+
+    @keyframes showcaseFadeIn {
+      0% { opacity: 0; transform: scale(0.8); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    /* ---- Truck Info Popup ---- */
+    .truck-info-popup {
+      position: absolute;
+      z-index: 20;
+      width: 260px;
+      background: linear-gradient(135deg, rgba(20,20,35,0.97), rgba(30,30,50,0.97));
+      border: 2px solid #fff;
+      border-radius: 14px;
+      padding: 14px 18px;
+      pointer-events: none;
+      opacity: 0;
+      transform: scale(0.85) translateY(10px);
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .truck-info-popup--visible {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+      pointer-events: auto;
+    }
+
+    .popup-rarity {
+      font-family: var(--font-body);
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .popup-name {
+      font-family: var(--font-heading);
+      font-size: 22px;
+      color: var(--chrome-bright);
+      letter-spacing: 1px;
+      margin-top: 2px;
+    }
+
+    .popup-tagline {
+      font-family: var(--font-accent);
+      font-size: 12px;
+      color: var(--chrome-dark);
+      margin-top: 1px;
+    }
+
+    .popup-stats {
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .popup-stat {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+    }
+
+    .popup-stat__label {
+      font-family: var(--font-body);
+      color: var(--chrome);
+      width: 45px;
+      text-align: right;
+      letter-spacing: 1px;
+      flex-shrink: 0;
+    }
+
+    .popup-stat__bar {
+      flex: 1;
+      height: 7px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .popup-stat__fill {
+      height: 100%;
+      border-radius: 4px;
+    }
+
+    .popup-stat__value {
+      font-family: var(--font-body);
+      color: var(--chrome-bright);
+      width: 24px;
+      text-align: right;
+      font-size: 11px;
+    }
+
+    .popup-ability {
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--chrome);
+      padding: 5px 8px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 6px;
+    }
+
+    .popup-ability__icon { font-size: 16px; }
+    .popup-ability__name {
+      font-family: var(--font-heading);
+      letter-spacing: 0.5px;
+    }
+
+    .popup-desc {
+      font-family: var(--font-body);
+      font-size: 10px;
+      color: var(--chrome-dark);
+      margin-top: 6px;
+      line-height: 1.4;
+      opacity: 0.7;
     }
 
     /* ---- Spotlights ---- */
@@ -307,53 +646,6 @@ function getTitleStyles() {
       text-shadow: 0 0 15px rgba(255, 107, 26, 0.4);
     }
 
-    /* ---- Decorative trucks ---- */
-    .title-trucks {
-      position: absolute;
-      width: 100%;
-      top: 50%;
-      pointer-events: none;
-    }
-
-    .title-truck {
-      position: absolute;
-      font-size: clamp(40px, 6vw, 70px);
-      opacity: 0;
-      filter: grayscale(0.3) brightness(0.7);
-    }
-
-    .title-truck-left {
-      left: 5%;
-      transform: scaleX(-1);
-      animation: truckRumbleLeft 0.6s ease 0.8s forwards, truckIdle 0.3s ease-in-out 1.4s infinite alternate;
-    }
-
-    .title-truck-right {
-      right: 5%;
-      animation: truckRumbleRight 0.6s ease 0.9s forwards, truckIdle 0.3s ease-in-out 1.5s infinite alternate;
-    }
-
-    @keyframes truckRumbleLeft {
-      0% { transform: scaleX(-1) translateX(-100px); opacity: 0; }
-      60% { transform: scaleX(-1) translateX(10px); opacity: 1; }
-      100% { transform: scaleX(-1) translateX(0); opacity: 0.7; }
-    }
-
-    @keyframes truckRumbleRight {
-      0% { transform: translateX(100px); opacity: 0; }
-      60% { transform: translateX(-10px); opacity: 1; }
-      100% { transform: translateX(0); opacity: 0.7; }
-    }
-
-    @keyframes truckIdle {
-      0% { transform: translateY(0); }
-      100% { transform: translateY(-2px); }
-    }
-
-    .title-truck-left {
-      animation: truckRumbleLeft 0.6s ease 0.8s forwards;
-    }
-
     /* ---- Play Button ---- */
     .title-play-btn {
       margin-top: 32px;
@@ -425,16 +717,11 @@ function getTitleStyles() {
 
     /* ---- Responsive adjustments ---- */
     @media (max-height: 500px) {
-      .title-badge {
-        margin-bottom: 4px;
-      }
-      .title-tagline {
-        margin-top: 8px;
-      }
-      .title-play-btn {
-        margin-top: 16px;
-        padding: 14px 48px;
-      }
+      .title-badge { margin-bottom: 4px; }
+      .title-tagline { margin-top: 8px; }
+      .title-play-btn { margin-top: 16px; padding: 14px 48px; }
+      .showcase-truck img { width: 70px; height: 56px; }
+      .showcase-truck__name { display: none; }
     }
   `;
 }
