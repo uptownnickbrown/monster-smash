@@ -1,10 +1,12 @@
 // ============================================
 // MONSTER SMASH - Results Screen
-// Winner display, stats breakdown, play again
+// Winner display with truck images, MVP flame,
+// stats breakdown, play again
 // ============================================
 
 import { getState, setState, resetBattle } from '../game-state.js';
 import { el } from '../utils/dom-utils.js';
+import { renderTruckToImage } from '../trucks/truck-renderer.js';
 
 let screenEl = null;
 
@@ -47,16 +49,42 @@ export function destroyResultsScreen() {
   }
 }
 
+function findMVP(results) {
+  // MVP = player truck that dealt the most damage (computerDamage = damage dealt TO the computer)
+  let mvpIndex = -1;
+  let bestDamage = 0;
+  results.forEach((r, i) => {
+    if (r.winner === 'player' && (r.computerDamage || 0) > bestDamage) {
+      bestDamage = r.computerDamage;
+      mvpIndex = i;
+    }
+  });
+  return mvpIndex;
+}
+
 function getResultsHTML(results, playerWins, computerWins, isVictory) {
   const totalPlayerDamage = results.reduce((sum, r) => sum + (r.computerDamage || 0), 0);
   const totalComputerDamage = results.reduce((sum, r) => sum + (r.playerDamage || 0), 0);
+  const mvpIndex = playerWins > 0 ? findMVP(results) : -1;
 
   const roundBreakdown = results.map((r, i) => {
     const won = r.winner === 'player';
+    const winnerTruck = won ? r.playerTruck : r.computerTruck;
+    const imgSrc = renderTruckToImage(winnerTruck, 70, 56);
+    const isMVP = i === mvpIndex;
+    const dmgDealt = won ? (r.computerDamage || 0) : (r.playerDamage || 0);
+
     return `
-      <div class="result-round ${won ? 'result-round--win' : 'result-round--lose'}">
-        <span class="result-round__num">R${i + 1}</span>
-        <span class="result-round__trucks">${r.playerTruck.name} vs ${r.computerTruck.name}</span>
+      <div class="result-round ${won ? 'result-round--win' : 'result-round--lose'} ${isMVP ? 'result-round--mvp' : ''}">
+        <div class="result-round__truck-img ${isMVP ? 'result-round__truck-img--mvp' : ''}">
+          <img src="${imgSrc}" alt="${winnerTruck.name}" draggable="false" />
+          ${isMVP ? '<span class="mvp-badge">MVP</span>' : ''}
+        </div>
+        <div class="result-round__info">
+          <span class="result-round__num">R${i + 1}</span>
+          <span class="result-round__name">${winnerTruck.name}</span>
+          <span class="result-round__dmg">${dmgDealt} dmg</span>
+        </div>
         <span class="result-round__outcome">${won ? 'WIN' : 'LOSS'}</span>
       </div>
     `;
@@ -263,7 +291,7 @@ function injectResultsStyles() {
       flex: 1;
       min-height: 0;
       width: 100%;
-      max-width: 500px;
+      max-width: 600px;
       display: flex;
       flex-direction: column;
       gap: 4px;
@@ -276,7 +304,7 @@ function injectResultsStyles() {
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: 8px 12px;
+      padding: 4px 12px;
       border-radius: var(--radius-sm);
       font-family: var(--font-body);
       font-size: 12px;
@@ -291,23 +319,101 @@ function injectResultsStyles() {
       border-left: 3px solid var(--fire-red);
     }
 
+    /* MVP round glow */
+    .result-round--mvp {
+      border: 2px solid #ffaa00;
+      border-left: 3px solid #ffaa00;
+      background: linear-gradient(90deg, rgba(255,170,0,0.12), var(--bg-surface) 40%);
+      animation: mvpGlow 2s ease-in-out infinite;
+    }
+
+    @keyframes mvpGlow {
+      0%, 100% { box-shadow: 0 0 8px rgba(255,170,0,0.3), 0 0 20px rgba(255,68,0,0.15); }
+      50% { box-shadow: 0 0 16px rgba(255,170,0,0.6), 0 0 35px rgba(255,68,0,0.3); }
+    }
+
+    /* Truck image in round */
+    .result-round__truck-img {
+      position: relative;
+      width: 56px;
+      height: 44px;
+      flex-shrink: 0;
+    }
+
+    .result-round__truck-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    /* MVP truck flame effect */
+    .result-round__truck-img--mvp img {
+      filter: drop-shadow(0 0 6px rgba(255,170,0,0.8)) drop-shadow(0 0 12px rgba(255,68,0,0.5));
+      animation: mvpFlame 1.5s ease-in-out infinite;
+    }
+
+    @keyframes mvpFlame {
+      0%, 100% {
+        filter: drop-shadow(0 0 6px rgba(255,170,0,0.8)) drop-shadow(0 0 12px rgba(255,68,0,0.5));
+      }
+      50% {
+        filter: drop-shadow(0 -3px 8px rgba(255,210,26,0.9)) drop-shadow(0 0 18px rgba(255,68,0,0.7));
+      }
+    }
+
+    .mvp-badge {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      font-family: var(--font-heading);
+      font-size: 9px;
+      letter-spacing: 1px;
+      color: #000;
+      background: linear-gradient(135deg, #ffd21a, #ffaa00);
+      padding: 1px 5px;
+      border-radius: 4px;
+      box-shadow: 0 0 8px rgba(255,170,0,0.6);
+    }
+
+    .result-round__info {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
     .result-round__num {
       font-family: var(--font-heading);
       font-size: 14px;
       color: var(--chrome-dark);
-      width: 30px;
+      width: 26px;
+      flex-shrink: 0;
     }
 
-    .result-round__trucks {
-      flex: 1;
+    .result-round__name {
+      font-family: var(--font-heading);
+      font-size: 13px;
       color: var(--chrome);
       letter-spacing: 0.5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .result-round__dmg {
+      font-family: var(--font-body);
+      font-size: 10px;
+      color: var(--chrome-dark);
+      letter-spacing: 1px;
+      flex-shrink: 0;
     }
 
     .result-round__outcome {
       font-family: var(--font-heading);
       font-size: 14px;
       letter-spacing: 1px;
+      flex-shrink: 0;
     }
 
     .result-round--win .result-round__outcome {
@@ -342,6 +448,7 @@ function injectResultsStyles() {
       .results-stat { padding: 4px 10px; min-width: 80px; }
       .results-stat__value { font-size: 22px; }
       .play-again-btn { padding: 10px 30px; }
+      .result-round__truck-img { width: 44px; height: 34px; }
     }
   `;
   document.head.appendChild(style);

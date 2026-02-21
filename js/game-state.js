@@ -5,6 +5,7 @@
 
 const state = {
   screen: 'title',          // 'title' | 'team-select' | 'battle' | 'results'
+  difficulty: 'easy',       // 'easy' | 'medium' | 'hard'
   allTrucks: [],             // loaded from JSON
   playerTeam: [],            // 5 selected trucks
   computerTeam: [],          // 5 randomly selected trucks

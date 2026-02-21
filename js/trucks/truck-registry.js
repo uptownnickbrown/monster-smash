@@ -3,6 +3,8 @@
 // Indexes loaded trucks, provides lookup/filter
 // ============================================
 
+import { getDifficulty } from '../difficulty.js';
+
 let allTrucks = [];
 const trucksById = new Map();
 
@@ -66,7 +68,7 @@ export function pickComputerTeam(playerTeam) {
   // Add some randomness so it's not always the same
   const scored = available.map(t => ({
     truck: t,
-    score: Math.abs((rarityValues[t.rarity] || 1) - playerAvgRarity) + Math.random() * 1.5,
+    score: Math.abs((rarityValues[t.rarity] || 1) - playerAvgRarity) + Math.random() * getDifficulty().computerTeamNoise,
   }));
 
   scored.sort((a, b) => a.score - b.score);

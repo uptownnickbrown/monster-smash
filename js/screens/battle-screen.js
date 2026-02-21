@@ -48,7 +48,7 @@ async function startNextRound() {
   // Update ability button
   updateAbilityButton(pTruck);
 
-  // Start the battle arena
+  // Start the battle arena (pass previous results for pedestal display)
   startBattle(pTruck, eTruck, currentRound + 1, (result) => {
     // Round complete callback
     roundResults.push({
@@ -70,7 +70,7 @@ async function startNextRound() {
         startNextRound();
       }
     });
-  });
+  }, roundResults);
 }
 
 function showRoundResult(winner, onContinue) {

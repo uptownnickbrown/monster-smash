@@ -116,7 +116,7 @@ export class TruckPhysics {
 
 // Calculate damage from collision
 // Returns { damage, critical, abilityBonus } for richer display
-export function calculateDamage(attackerTruck, power, defenderTruck, abilityActive = null) {
+export function calculateDamage(attackerTruck, power, defenderTruck, abilityActive = null, critBonus = 0) {
   const baseDamage = attackerTruck.stats.smashDamage;
   const speedMultiplier = 1.0 + (attackerTruck.stats.speed / 100) * 0.5;
   const baseDefense = defenderTruck.stats.shield / 200;
@@ -124,8 +124,8 @@ export function calculateDamage(attackerTruck, power, defenderTruck, abilityActi
   // Random variance: ±30% — makes every hit feel different
   const variance = 0.7 + Math.random() * 0.6; // 0.7 to 1.3
 
-  // Lucky critical: 10% chance of 1.8x
-  const isCritical = Math.random() < 0.10;
+  // Lucky critical: 10% base chance + difficulty bonus, 1.8x multiplier
+  const isCritical = Math.random() < (0.10 + critBonus);
   const criticalMult = isCritical ? 1.8 : 1.0;
 
   // Calculate base damage (without ability)

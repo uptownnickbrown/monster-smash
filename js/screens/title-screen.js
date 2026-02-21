@@ -7,6 +7,7 @@
 import { setState, getState, onStateChange } from '../game-state.js';
 import { renderTruckToImage } from '../trucks/truck-renderer.js';
 import { playEngineRev, playClick, playPowerUp } from '../audio/sound-effects.js';
+import { setDifficulty } from '../difficulty.js';
 
 let screenEl = null;
 let sparksInterval = null;
@@ -47,9 +48,20 @@ export function createTitleScreen(container) {
 
       <div class="title-tagline">PICK YOUR TEAM. CRUSH THE COMPETITION.</div>
 
-      <button class="btn btn-fire title-play-btn" type="button">
-        <span class="title-play-text">&#x25B6; PLAY</span>
-      </button>
+      <div class="title-difficulty-buttons">
+        <button class="btn title-diff-btn title-diff-btn--easy" type="button" data-difficulty="easy">
+          <span class="title-diff-label">EASY</span>
+          <span class="title-diff-desc">Chill smashing</span>
+        </button>
+        <button class="btn title-diff-btn title-diff-btn--medium" type="button" data-difficulty="medium">
+          <span class="title-diff-label">MEDIUM</span>
+          <span class="title-diff-desc">A real fight</span>
+        </button>
+        <button class="btn title-diff-btn title-diff-btn--hard" type="button" data-difficulty="hard">
+          <span class="title-diff-label">HARD</span>
+          <span class="title-diff-desc">Brutal!</span>
+        </button>
+      </div>
 
       <div class="title-tire-tracks" aria-hidden="true"></div>
     </div>
@@ -67,9 +79,10 @@ export function createTitleScreen(container) {
 
   container.appendChild(screenEl);
 
-  // Bind play button
-  const playBtn = screenEl.querySelector('.title-play-btn');
-  playBtn.addEventListener('pointerdown', handlePlay);
+  // Bind difficulty buttons
+  screenEl.querySelectorAll('.title-diff-btn').forEach(btn => {
+    btn.addEventListener('pointerdown', handlePlay);
+  });
 
   // Dismiss popup on any tap outside trucks
   screenEl.addEventListener('pointerdown', (e) => {
@@ -253,9 +266,11 @@ function handlePlay(e) {
   e.preventDefault();
   dismissPopup();
   const btn = e.currentTarget;
+  const difficulty = btn.dataset.difficulty || 'easy';
+  setDifficulty(difficulty);
   btn.classList.add('title-play-pressed');
   screenEl.classList.add('title-exit');
-  setTimeout(() => setState({ screen: 'team-select' }), 400);
+  setTimeout(() => setState({ difficulty, screen: 'team-select' }), 400);
 }
 
 function startSparks() {
@@ -668,27 +683,70 @@ function getTitleStyles() {
       text-shadow: 0 0 15px rgba(255, 107, 26, 0.4);
     }
 
-    /* ---- Play Button ---- */
-    .title-play-btn {
-      margin-top: 32px;
-      padding: 18px 64px;
-      font-size: clamp(22px, 3.5vw, 34px);
+    /* ---- Difficulty Buttons ---- */
+    .title-difficulty-buttons {
+      margin-top: 24px;
+      display: flex;
+      gap: 12px;
       opacity: 0;
-      animation:
-        buttonReveal 0.5s cubic-bezier(0.22, 1, 0.36, 1) 1.3s forwards,
-        buttonPulse 2s ease-in-out 1.8s infinite;
-      border-radius: var(--radius-xl);
+      animation: buttonReveal 0.5s cubic-bezier(0.22, 1, 0.36, 1) 1.3s forwards;
       position: relative;
       z-index: 5;
       pointer-events: auto;
     }
 
-    .title-play-text {
-      position: relative;
-      z-index: 2;
+    .title-diff-btn {
       display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 10px;
+      gap: 2px;
+      padding: 12px 24px;
+      border-radius: var(--radius-lg, 12px);
+      font-family: var(--font-heading);
+      cursor: pointer;
+      touch-action: manipulation;
+      min-width: 100px;
+      border: 2px solid;
+      transition: transform 0.15s ease, filter 0.15s ease;
+    }
+
+    .title-diff-btn:active {
+      transform: scale(0.92);
+      filter: brightness(1.3);
+    }
+
+    .title-diff-label {
+      font-size: clamp(18px, 3vw, 28px);
+      letter-spacing: 2px;
+    }
+
+    .title-diff-desc {
+      font-family: var(--font-accent);
+      font-size: clamp(9px, 1.4vw, 12px);
+      letter-spacing: 1px;
+      opacity: 0.7;
+    }
+
+    .title-diff-btn--easy {
+      background: linear-gradient(180deg, #1a4a1a, #0d2a0d);
+      border-color: var(--neon-green);
+      color: var(--neon-green);
+      box-shadow: 0 0 15px rgba(57, 255, 20, 0.3);
+      animation: buttonPulse 2s ease-in-out 1.8s infinite;
+    }
+
+    .title-diff-btn--medium {
+      background: linear-gradient(180deg, #4a3a1a, #2a1f0d);
+      border-color: var(--fire-orange);
+      color: var(--fire-orange);
+      box-shadow: 0 0 15px rgba(255, 107, 26, 0.3);
+    }
+
+    .title-diff-btn--hard {
+      background: linear-gradient(180deg, #4a1a1a, #2a0d0d);
+      border-color: var(--fire-red);
+      color: var(--fire-red);
+      box-shadow: 0 0 15px rgba(255, 45, 45, 0.3);
     }
 
     .title-play-pressed {
@@ -742,7 +800,8 @@ function getTitleStyles() {
     @media (max-height: 500px) {
       .title-badge { margin-bottom: 4px; }
       .title-tagline { margin-top: 8px; }
-      .title-play-btn { margin-top: 16px; padding: 14px 48px; }
+      .title-difficulty-buttons { margin-top: 12px; gap: 8px; }
+      .title-diff-btn { padding: 8px 18px; min-width: 80px; }
       .showcase-truck img { width: 55px; height: 44px; }
       .showcase-strip--left, .showcase-strip--right {
         top: 48px; bottom: 48px;

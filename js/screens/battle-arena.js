@@ -10,10 +10,11 @@ import { TruckPhysics, calculateDamage, calculateKnockback } from '../engine/phy
 import { ParticleSystem } from '../engine/particles.js';
 import { triggerShake, updateShake, resetShake } from '../engine/screen-shake.js';
 import { updateTweens, clearTweens } from '../engine/animation.js';
-import { drawTruck } from '../trucks/truck-renderer.js';
+import { drawTruck, renderTruckToImage } from '../trucks/truck-renderer.js';
 import { clamp, randomRange } from '../utils/math-utils.js';
 import { addPointerHandlers } from '../utils/touch-utils.js';
 import { playCrash, playExplosion, playWhoosh, playPowerUp, playEngineRev } from '../audio/sound-effects.js';
+import { getDifficulty } from '../difficulty.js';
 
 // Polyfill for roundRect on older browsers
 if (!CanvasRenderingContext2D.prototype.roundRect) {
@@ -39,7 +40,6 @@ const ARENA_H = 500;
 // Sweet spot config — zone, not a single pixel!
 const SWEET_SPOT_CENTER = 0.70;   // center of sweet spot zone
 const OVERCLOCK_PENALTY = 0.45;   // power drops by this much at 100% drag
-const CHARGE_TIMEOUT = 3.5;       // seconds before auto-launch
 
 // Starting positions (closer together for more impact)
 const PLAYER_START = 0.25;
@@ -88,6 +88,7 @@ let launchAiPower = 0;
 let sweetSpotLow = 0.60;
 let sweetSpotHigh = 0.80;
 let chargeTimer = 0;
+let chargeTimerMax = 3.5;
 
 let playerAbilityUsed = false;
 let playerAbilityActive = null;
@@ -98,6 +99,10 @@ let flashAlpha = 0;
 let roundText = '';
 let roundTextTimer = 0;
 let damageNumbers = [];
+
+// Previous round winners for pedestal display
+let pastResults = [];
+let pedestalTruckImages = []; // cached data URLs for pedestal trucks
 
 // Fire background effect
 let bgEmbers = [];
@@ -126,10 +131,11 @@ function getSweetSpotPower(drag) {
   return 1.0 - over * OVERCLOCK_PENALTY;
 }
 
-// Calculate sweet spot zone width based on truck speed
+// Calculate sweet spot zone width based on truck speed and difficulty
 function calcSweetSpotZone(truck) {
   const speedFactor = (truck.stats.speed || 50) / 100;
-  const halfWidth = 0.04 + speedFactor * 0.08; // 0.04 to 0.12 half-width
+  const baseHalfWidth = 0.04 + speedFactor * 0.08; // 0.04 to 0.12 half-width
+  const halfWidth = baseHalfWidth * getDifficulty().sweetSpotScale;
   return {
     low: SWEET_SPOT_CENTER - halfWidth,
     high: SWEET_SPOT_CENTER + halfWidth,
@@ -175,10 +181,21 @@ function getAbilityLabel(type) {
 
 // ---- Main API ----
 
-export function startBattle(pTruck, eTruck, roundNum, onComplete) {
+export function startBattle(pTruck, eTruck, roundNum, onComplete, previousResults = []) {
   playerTruck = pTruck;
   enemyTruck = eTruck;
   onRoundComplete = onComplete;
+  pastResults = previousResults;
+
+  // Pre-render pedestal truck images
+  pedestalTruckImages = pastResults.map(r => {
+    const truck = r.winner === 'player' ? r.playerTruck : r.computerTruck;
+    return {
+      img: renderTruckToImage(truck, 50, 40),
+      isPlayer: r.winner === 'player',
+      name: truck.name,
+    };
+  });
 
   playerMaxHP = 100 + playerTruck.stats.shield * 2;
   enemyMaxHP = 100 + enemyTruck.stats.shield * 2;
@@ -317,10 +334,12 @@ export function getPhase() { return phase; }
 
 function handlePointerDown(e) {
   if (phase === 'charge') {
+    const diff = getDifficulty();
     isDragging = true;
     dragStartX = e.clientX;
     chargeAmount = 0;
-    chargeTimer = CHARGE_TIMEOUT;
+    chargeTimerMax = diff.chargeTimeout;
+    chargeTimer = chargeTimerMax;
     playEngineRev(0.2);
 
     // Calculate sweet spot zone for this truck's speed
@@ -329,7 +348,7 @@ function handlePointerDown(e) {
     sweetSpotHigh = zone.high;
 
     // AI decides its power and starts charging simultaneously
-    aiPower = randomRange(0.5, 0.8);
+    aiPower = randomRange(diff.aiPowerMin, diff.aiPowerMax);
     aiChargeTarget = aiPower * SWEET_SPOT_CENTER; // visual charge amount
     aiChargeProgress = 0;
   }
@@ -592,7 +611,7 @@ function updateCharge(dt) {
   // AI ability check (once per charge phase)
   if (isDragging && !enemyAbilityChecked && phaseTimer > 0.3) {
     enemyAbilityChecked = true;
-    if (!enemyAbilityUsed && Math.random() < 0.3) {
+    if (!enemyAbilityUsed && Math.random() < getDifficulty().aiAbilityChance) {
       activateEnemyAbility();
     }
   }
@@ -779,7 +798,7 @@ function handleSimultaneousCollision() {
 
   // Player damages enemy, enemy damages player
   const playerResult = calculateDamage(playerTruck, power1, enemyTruck, playerAbilityActive);
-  const enemyResult = calculateDamage(enemyTruck, power2, playerTruck, enemyAbilityActive);
+  const enemyResult = calculateDamage(enemyTruck, power2, playerTruck, enemyAbilityActive, getDifficulty().aiCritBonus);
   const playerDmg = playerResult.damage;
   const enemyDmg = enemyResult.damage;
 
@@ -1058,6 +1077,9 @@ function render(ctx, w, h, dt) {
 
   // Draw stadium background
   drawStadiumBg(ctx, w, h);
+
+  // Draw pedestals for previous round winners
+  drawPedestals(ctx, w, h);
 
   // Draw ground with fire edges
   drawGround(ctx, w, h);
@@ -1361,6 +1383,80 @@ function drawStadiumBg(ctx, w, h) {
   ctx.restore();
 }
 
+function drawPedestals(ctx, w, h) {
+  // 5 pedestals evenly spaced across the top-middle of the arena
+  const pedestalW = 40;
+  const pedestalH = 28;
+  const totalWidth = 5 * pedestalW + 4 * 12; // 5 pedestals + 4 gaps
+  const startX = (w - totalWidth) / 2;
+  const baseY = h * 0.52;
+
+  // Pre-load images for pedestals with results
+  const imgCache = [];
+  pedestalTruckImages.forEach((pt, i) => {
+    if (!pt._imgEl) {
+      pt._imgEl = new Image();
+      pt._imgEl.src = pt.img;
+    }
+    imgCache[i] = pt._imgEl;
+  });
+
+  for (let i = 0; i < 5; i++) {
+    const x = startX + i * (pedestalW + 12);
+    const hasResult = i < pastResults.length;
+
+    ctx.save();
+
+    // Pedestal base
+    ctx.globalAlpha = hasResult ? 0.5 : 0.15;
+    const pedestalColor = hasResult
+      ? (pedestalTruckImages[i].isPlayer ? '#1a4a1a' : '#4a1a1a')
+      : '#1a1a2a';
+    ctx.fillStyle = pedestalColor;
+    ctx.beginPath();
+    ctx.roundRect(x, baseY, pedestalW, pedestalH, [0, 0, 4, 4]);
+    ctx.fill();
+
+    // Pedestal top surface
+    ctx.fillStyle = hasResult
+      ? (pedestalTruckImages[i].isPlayer ? '#2a6a2a' : '#6a2a2a')
+      : '#2a2a3a';
+    ctx.fillRect(x - 2, baseY - 2, pedestalW + 4, 4);
+
+    // Pedestal glow for completed rounds
+    if (hasResult) {
+      const glowColor = pedestalTruckImages[i].isPlayer
+        ? 'rgba(57, 255, 20, 0.15)'
+        : 'rgba(255, 45, 45, 0.15)';
+      ctx.globalAlpha = 0.4;
+      ctx.shadowColor = pedestalTruckImages[i].isPlayer ? '#39ff14' : '#ff2d2d';
+      ctx.shadowBlur = 8;
+      ctx.fillStyle = glowColor;
+      ctx.fillRect(x - 2, baseY - 2, pedestalW + 4, 4);
+      ctx.shadowBlur = 0;
+    }
+
+    // Round number on pedestal
+    ctx.globalAlpha = hasResult ? 0.8 : 0.3;
+    ctx.font = `bold ${8}px "Bangers", sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillStyle = hasResult
+      ? (pedestalTruckImages[i].isPlayer ? '#39ff14' : '#ff2d2d')
+      : '#555';
+    ctx.fillText(`R${i + 1}`, x + pedestalW / 2, baseY + pedestalH - 6);
+
+    // Draw winning truck on pedestal
+    if (hasResult && imgCache[i] && imgCache[i].complete) {
+      ctx.globalAlpha = 0.7;
+      const imgW = 44;
+      const imgH = 35;
+      ctx.drawImage(imgCache[i], x + (pedestalW - imgW) / 2, baseY - imgH - 2, imgW, imgH);
+    }
+
+    ctx.restore();
+  }
+}
+
 function drawGround(ctx, w, h) {
   const groundY = h * 0.72;
 
@@ -1534,7 +1630,7 @@ function drawPowerMeter(ctx, w, h) {
 
   // Charge timer countdown
   if (isDragging && chargeTimer > 0) {
-    const timerPct = chargeTimer / CHARGE_TIMEOUT;
+    const timerPct = chargeTimer / chargeTimerMax;
     const timerColor = timerPct > 0.4 ? '#ffffff' : timerPct > 0.2 ? '#ffd21a' : '#ff2200';
     const timerPulse = timerPct < 0.3 ? 0.5 + Math.sin(performance.now() / 100) * 0.5 : 1;
 
