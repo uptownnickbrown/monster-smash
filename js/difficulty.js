@@ -6,13 +6,13 @@
 const CONFIGS = {
   easy: {
     label: 'EASY',
-    sweetSpotScale: 1.0,
-    chargeTimeout: 3.5,
-    aiPowerMin: 0.5,
-    aiPowerMax: 0.8,
-    aiAbilityChance: 0.3,
+    sweetSpotScale: 1.2,
+    chargeTimeout: 4.0,
+    aiPowerMin: 0.4,
+    aiPowerMax: 0.7,
+    aiAbilityChance: 0.2,
     aiCritBonus: 0,
-    computerTeamNoise: 1.5,
+    computerTeamNoise: 2.0,
   },
   medium: {
     label: 'MEDIUM',
