@@ -62,18 +62,21 @@ function findMVP(results) {
 }
 
 function getResultsHTML(results, playerWins, computerWins, isVictory) {
+  const totalPlayerDamage = results.reduce((sum, r) => sum + (r.computerDamage || 0), 0);
+  const totalComputerDamage = results.reduce((sum, r) => sum + (r.playerDamage || 0), 0);
   const mvpIndex = playerWins > 0 ? findMVP(results) : -1;
 
   // Build podium trucks — all 5 rounds, showing the winner of each
   const podiumTrucks = results.map((r, i) => {
     const won = r.winner === 'player';
     const winnerTruck = won ? r.playerTruck : r.computerTruck;
-    const imgSrc = renderTruckToImage(winnerTruck, 160, 128);
+    const imgSrc = renderTruckToImage(winnerTruck, 200, 160);
     const isMVP = i === mvpIndex;
 
     return `
       <div class="podium-slot ${won ? 'podium-slot--win' : 'podium-slot--lose'} ${isMVP ? 'podium-slot--mvp' : ''}"
            style="animation-delay: ${i * 0.12}s">
+        <div class="podium-dot ${won ? 'podium-dot--win' : 'podium-dot--lose'}"></div>
         <div class="podium-truck ${isMVP ? 'podium-truck--mvp' : ''}">
           ${isMVP ? '<div class="mvp-fire"></div>' : ''}
           <img src="${imgSrc}" alt="${winnerTruck.name}" draggable="false" />
@@ -82,19 +85,25 @@ function getResultsHTML(results, playerWins, computerWins, isVictory) {
         <div class="podium-name">${winnerTruck.name}</div>
         <div class="podium-base">
           <span class="podium-round">R${i + 1}</span>
-          <span class="podium-result">${won ? 'WIN' : 'LOSS'}</span>
         </div>
       </div>
     `;
   }).join('');
 
-  // Compact round summary for the bottom
+  // Round summary with damage stats
   const roundSummary = results.map((r, i) => {
     const won = r.winner === 'player';
+    const playerDmg = r.computerDamage || 0;
+    const cpuDmg = r.playerDamage || 0;
     return `
       <div class="round-line ${won ? 'round-line--win' : 'round-line--lose'}">
         <span class="round-line__r">R${i + 1}</span>
         <span class="round-line__vs">${r.playerTruck.name} vs ${r.computerTruck.name}</span>
+        <span class="round-line__dmg">
+          <span class="round-line__dealt">${playerDmg}</span>
+          <span class="round-line__sep">/</span>
+          <span class="round-line__taken">${cpuDmg}</span>
+        </span>
         <span class="round-line__out">${won ? 'WIN' : 'LOSS'}</span>
       </div>
     `;
@@ -124,6 +133,16 @@ function getResultsHTML(results, playerWins, computerWins, isVictory) {
       </div>
 
       <div class="results-bottom">
+        <div class="results-totals">
+          <div class="results-total results-total--green">
+            <span class="results-total__label">DEALT</span>
+            <span class="results-total__value">${totalPlayerDamage}</span>
+          </div>
+          <div class="results-total results-total--red">
+            <span class="results-total__label">TAKEN</span>
+            <span class="results-total__value">${totalComputerDamage}</span>
+          </div>
+        </div>
         <div class="round-summary">
           ${roundSummary}
         </div>
@@ -172,7 +191,7 @@ function injectResultsStyles() {
       align-items: center;
       width: 100%;
       height: 100%;
-      padding: 8px 16px;
+      padding: 4px 12px;
       overflow: hidden;
     }
 
@@ -193,7 +212,7 @@ function injectResultsStyles() {
       animation: confettiDrop linear infinite;
     }
 
-    /* Header — compact */
+    /* Header — very compact */
     .results-header {
       text-align: center;
       position: relative;
@@ -203,7 +222,7 @@ function injectResultsStyles() {
 
     .results-verdict {
       font-family: var(--font-display);
-      font-size: clamp(28px, 6vw, 56px);
+      font-size: clamp(24px, 5vw, 48px);
       letter-spacing: 4px;
       line-height: 1;
     }
@@ -227,31 +246,32 @@ function injectResultsStyles() {
 
     .results-score {
       font-family: var(--font-heading);
-      font-size: clamp(28px, 5vw, 44px);
+      font-size: clamp(22px, 4vw, 36px);
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 10px;
-      margin: 2px 0;
+      gap: 8px;
+      margin: 0;
+      line-height: 1.1;
     }
 
     .results-score-player { color: var(--neon-green); }
     .results-score-divider { color: var(--chrome-dark); font-size: 0.7em; }
     .results-score-computer { color: var(--fire-red); }
 
-    /* ---- Podium Row ---- */
+    /* ---- Podium Row — centered, big trucks ---- */
     .podium-row {
       display: flex;
-      align-items: flex-end;
+      align-items: center;
       justify-content: center;
-      gap: clamp(6px, 1.5vw, 16px);
+      gap: clamp(4px, 1vw, 12px);
       flex: 1;
       min-height: 0;
       width: 100%;
-      max-width: 900px;
+      max-width: 960px;
       position: relative;
       z-index: 1;
-      padding: 0 8px;
+      padding: 0 4px;
     }
 
     .podium-slot {
@@ -259,7 +279,7 @@ function injectResultsStyles() {
       flex-direction: column;
       align-items: center;
       flex: 1;
-      max-width: 160px;
+      max-width: 180px;
       opacity: 0;
       animation: podiumReveal 0.5s ease forwards;
     }
@@ -269,11 +289,30 @@ function injectResultsStyles() {
       100% { opacity: 1; transform: translateY(0); }
     }
 
-    /* Truck image container */
+    /* Win/loss dot above truck */
+    .podium-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-bottom: 4px;
+      flex-shrink: 0;
+    }
+
+    .podium-dot--win {
+      background: var(--neon-green);
+      box-shadow: 0 0 8px var(--neon-green), 0 0 16px rgba(57,255,20,0.4);
+    }
+
+    .podium-dot--lose {
+      background: var(--fire-red);
+      box-shadow: 0 0 8px var(--fire-red), 0 0 16px rgba(255,45,45,0.4);
+    }
+
+    /* Truck image container — BIG */
     .podium-truck {
       position: relative;
-      width: clamp(80px, 15vw, 140px);
-      height: clamp(64px, 12vw, 112px);
+      width: clamp(100px, 17vw, 160px);
+      height: clamp(80px, 13.6vw, 128px);
     }
 
     .podium-truck img {
@@ -326,31 +365,19 @@ function injectResultsStyles() {
     }
 
     @keyframes fireFlicker {
-      0% {
-        opacity: 0.7;
-        transform: scaleY(1) scaleX(1);
-      }
-      33% {
-        opacity: 0.9;
-        transform: scaleY(1.08) scaleX(0.96);
-      }
-      66% {
-        opacity: 0.75;
-        transform: scaleY(1.04) scaleX(1.02);
-      }
-      100% {
-        opacity: 0.85;
-        transform: scaleY(1.1) scaleX(0.98);
-      }
+      0% { opacity: 0.7; transform: scaleY(1) scaleX(1); }
+      33% { opacity: 0.9; transform: scaleY(1.08) scaleX(0.96); }
+      66% { opacity: 0.75; transform: scaleY(1.04) scaleX(1.02); }
+      100% { opacity: 0.85; transform: scaleY(1.1) scaleX(0.98); }
     }
 
     /* Crown emoji above MVP */
     .mvp-crown {
       position: absolute;
-      top: -18px;
+      top: -20px;
       left: 50%;
       transform: translateX(-50%);
-      font-size: clamp(20px, 3vw, 32px);
+      font-size: clamp(22px, 3.5vw, 36px);
       animation: crownBob 2s ease-in-out infinite;
       filter: drop-shadow(0 2px 6px rgba(255,170,0,0.8));
     }
@@ -371,7 +398,7 @@ function injectResultsStyles() {
       overflow: hidden;
       text-overflow: ellipsis;
       max-width: 100%;
-      margin-top: 2px;
+      margin-top: 1px;
     }
 
     .podium-slot--mvp .podium-name {
@@ -379,34 +406,12 @@ function injectResultsStyles() {
       text-shadow: 0 0 8px rgba(255,170,0,0.5);
     }
 
-    /* Pedestal base */
+    /* Pedestal base — minimal */
     .podium-base {
       width: 100%;
       display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 4px 0 6px;
-      border-radius: 0 0 6px 6px;
-      margin-top: 2px;
-    }
-
-    .podium-slot--win .podium-base {
-      background: linear-gradient(180deg, #1a3a1a, #0d200d);
-      border: 1px solid rgba(57,255,20,0.3);
-      border-top: 2px solid rgba(57,255,20,0.5);
-    }
-
-    .podium-slot--lose .podium-base {
-      background: linear-gradient(180deg, #3a1a1a, #200d0d);
-      border: 1px solid rgba(255,45,45,0.3);
-      border-top: 2px solid rgba(255,45,45,0.5);
-    }
-
-    .podium-slot--mvp .podium-base {
-      background: linear-gradient(180deg, #3a2a0a, #201a05);
-      border: 1px solid rgba(255,170,0,0.4);
-      border-top: 2px solid rgba(255,210,26,0.6);
-      box-shadow: 0 0 12px rgba(255,170,0,0.2);
+      justify-content: center;
+      padding: 2px 0;
     }
 
     .podium-round {
@@ -416,33 +421,56 @@ function injectResultsStyles() {
       letter-spacing: 1px;
     }
 
-    .podium-result {
-      font-family: var(--font-heading);
-      font-size: clamp(11px, 1.5vw, 14px);
-      letter-spacing: 1px;
-    }
-
-    .podium-slot--win .podium-result { color: var(--neon-green); }
-    .podium-slot--lose .podium-result { color: var(--fire-red); }
-    .podium-slot--mvp .podium-result { color: #ffd21a; }
-
-    /* ---- Bottom Area: round summary + play again ---- */
+    /* ---- Bottom Area ---- */
     .results-bottom {
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 10px;
       width: 100%;
-      max-width: 900px;
+      max-width: 960px;
       flex-shrink: 0;
       position: relative;
       z-index: 1;
-      padding-top: 4px;
+      padding-top: 2px;
     }
 
+    /* Damage totals */
+    .results-totals {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      flex-shrink: 0;
+    }
+
+    .results-total {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: var(--bg-surface);
+    }
+
+    .results-total__label {
+      font-family: var(--font-body);
+      font-size: 8px;
+      color: var(--chrome-dark);
+      letter-spacing: 1px;
+    }
+
+    .results-total__value {
+      font-family: var(--font-heading);
+      font-size: 14px;
+    }
+
+    .results-total--green .results-total__value { color: var(--neon-green); }
+    .results-total--red .results-total__value { color: var(--fire-red); }
+
+    /* Round summary */
     .round-summary {
       flex: 1;
       display: flex;
-      gap: 4px;
+      gap: 3px;
       min-width: 0;
       overflow: hidden;
     }
@@ -452,7 +480,7 @@ function injectResultsStyles() {
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 3px 4px;
+      padding: 2px 3px;
       border-radius: 4px;
       background: var(--bg-surface);
       opacity: 0.6;
@@ -464,13 +492,13 @@ function injectResultsStyles() {
 
     .round-line__r {
       font-family: var(--font-heading);
-      font-size: 10px;
+      font-size: 9px;
       color: var(--chrome-dark);
     }
 
     .round-line__vs {
       font-family: var(--font-body);
-      font-size: 8px;
+      font-size: 7px;
       color: var(--chrome-dark);
       letter-spacing: 0.5px;
       white-space: nowrap;
@@ -480,9 +508,21 @@ function injectResultsStyles() {
       text-align: center;
     }
 
+    .round-line__dmg {
+      font-family: var(--font-heading);
+      font-size: 9px;
+      display: flex;
+      gap: 2px;
+      align-items: center;
+    }
+
+    .round-line__dealt { color: var(--neon-green); }
+    .round-line__sep { color: var(--chrome-dark); font-size: 7px; }
+    .round-line__taken { color: var(--fire-red); }
+
     .round-line__out {
       font-family: var(--font-heading);
-      font-size: 10px;
+      font-size: 9px;
     }
 
     .round-line--win .round-line__out { color: var(--neon-green); }
@@ -505,13 +545,14 @@ function injectResultsStyles() {
 
     /* Small screen */
     @media (max-height: 400px) {
-      .results-content { padding: 4px 10px; }
-      .results-verdict { font-size: 24px; }
-      .results-score { font-size: 22px; margin: 0; }
-      .podium-truck { width: 70px; height: 56px; }
+      .results-content { padding: 2px 8px; }
+      .results-verdict { font-size: 22px; }
+      .results-score { font-size: 20px; }
+      .podium-truck { width: 80px; height: 64px; }
       .mvp-crown { font-size: 16px; top: -14px; }
       .podium-name { font-size: 8px; }
       .play-again-btn { padding: 8px 20px; }
+      .podium-dot { width: 8px; height: 8px; }
     }
   `;
   document.head.appendChild(style);
