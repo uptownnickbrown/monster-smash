@@ -191,7 +191,7 @@ export function startBattle(pTruck, eTruck, roundNum, onComplete, previousResult
   pedestalTruckImages = pastResults.map(r => {
     const truck = r.winner === 'player' ? r.playerTruck : r.computerTruck;
     return {
-      img: renderTruckToImage(truck, 140, 112),
+      img: renderTruckToImage(truck, 200, 160),
       isPlayer: r.winner === 'player',
       name: truck.name,
     };
@@ -1384,13 +1384,13 @@ function drawStadiumBg(ctx, w, h) {
 }
 
 function drawPedestals(ctx, w, h) {
-  // 5 pedestals evenly spaced across the upper background
-  const pedestalW = 80;
-  const pedestalH = 36;
-  const gap = 16;
+  // 5 pedestals evenly spaced — trucks nearly as big as the battling ones
+  const pedestalW = w * 0.14;
+  const pedestalH = 20;
+  const gap = w * 0.02;
   const totalWidth = 5 * pedestalW + 4 * gap;
   const startX = (w - totalWidth) / 2;
-  const baseY = h * 0.53;
+  const baseY = h * 0.55;
 
   // Pre-load images for pedestals with results
   const imgCache = [];
@@ -1409,49 +1409,49 @@ function drawPedestals(ctx, w, h) {
     ctx.save();
 
     // Pedestal base
-    ctx.globalAlpha = hasResult ? 0.5 : 0.15;
+    ctx.globalAlpha = hasResult ? 0.45 : 0.12;
     const pedestalColor = hasResult
       ? (pedestalTruckImages[i].isPlayer ? '#1a4a1a' : '#4a1a1a')
       : '#1a1a2a';
     ctx.fillStyle = pedestalColor;
     ctx.beginPath();
-    ctx.roundRect(x, baseY, pedestalW, pedestalH, [0, 0, 6, 6]);
+    ctx.roundRect(x, baseY, pedestalW, pedestalH, [0, 0, 4, 4]);
     ctx.fill();
 
     // Pedestal top surface
     ctx.fillStyle = hasResult
       ? (pedestalTruckImages[i].isPlayer ? '#2a6a2a' : '#6a2a2a')
       : '#2a2a3a';
-    ctx.fillRect(x - 3, baseY - 3, pedestalW + 6, 5);
+    ctx.fillRect(x - 2, baseY - 2, pedestalW + 4, 4);
 
     // Pedestal glow for completed rounds
     if (hasResult) {
-      ctx.globalAlpha = 0.5;
+      ctx.globalAlpha = 0.45;
       ctx.shadowColor = pedestalTruckImages[i].isPlayer ? '#39ff14' : '#ff2d2d';
-      ctx.shadowBlur = 14;
+      ctx.shadowBlur = 16;
       const glowColor = pedestalTruckImages[i].isPlayer
-        ? 'rgba(57, 255, 20, 0.2)'
-        : 'rgba(255, 45, 45, 0.2)';
+        ? 'rgba(57, 255, 20, 0.25)'
+        : 'rgba(255, 45, 45, 0.25)';
       ctx.fillStyle = glowColor;
-      ctx.fillRect(x - 3, baseY - 3, pedestalW + 6, 5);
+      ctx.fillRect(x - 2, baseY - 2, pedestalW + 4, 4);
       ctx.shadowBlur = 0;
     }
 
     // Round number on pedestal
-    ctx.globalAlpha = hasResult ? 0.8 : 0.3;
-    ctx.font = `bold ${11}px "Bangers", sans-serif`;
+    ctx.globalAlpha = hasResult ? 0.8 : 0.25;
+    ctx.font = `bold ${10}px "Bangers", sans-serif`;
     ctx.textAlign = 'center';
     ctx.fillStyle = hasResult
       ? (pedestalTruckImages[i].isPlayer ? '#39ff14' : '#ff2d2d')
       : '#555';
-    ctx.fillText(`R${i + 1}`, x + pedestalW / 2, baseY + pedestalH - 8);
+    ctx.fillText(`R${i + 1}`, x + pedestalW / 2, baseY + pedestalH - 5);
 
-    // Draw winning truck on pedestal — big and proud
+    // Draw winning truck on pedestal — nearly battle-sized
     if (hasResult && imgCache[i] && imgCache[i].complete) {
-      ctx.globalAlpha = 0.75;
-      const imgW = 90;
-      const imgH = 72;
-      ctx.drawImage(imgCache[i], x + (pedestalW - imgW) / 2, baseY - imgH, imgW, imgH);
+      ctx.globalAlpha = 0.7;
+      const imgW = pedestalW * 1.3;
+      const imgH = imgW * 0.8;
+      ctx.drawImage(imgCache[i], x + (pedestalW - imgW) / 2, baseY - imgH + 2, imgW, imgH);
     }
 
     ctx.restore();
