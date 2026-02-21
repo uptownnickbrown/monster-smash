@@ -1,7 +1,7 @@
 // ============================================
 // MONSTER SMASH - Results Screen
-// Winner display with truck images, MVP flame,
-// stats breakdown, play again
+// Podium showcase with 5 trucks, MVP flame,
+// round results below, play again
 // ============================================
 
 import { getState, setState, resetBattle } from '../game-state.js';
@@ -50,7 +50,6 @@ export function destroyResultsScreen() {
 }
 
 function findMVP(results) {
-  // MVP = player truck that dealt the most damage (computerDamage = damage dealt TO the computer)
   let mvpIndex = -1;
   let bestDamage = 0;
   results.forEach((r, i) => {
@@ -63,29 +62,40 @@ function findMVP(results) {
 }
 
 function getResultsHTML(results, playerWins, computerWins, isVictory) {
-  const totalPlayerDamage = results.reduce((sum, r) => sum + (r.computerDamage || 0), 0);
-  const totalComputerDamage = results.reduce((sum, r) => sum + (r.playerDamage || 0), 0);
   const mvpIndex = playerWins > 0 ? findMVP(results) : -1;
 
-  const roundBreakdown = results.map((r, i) => {
+  // Build podium trucks — all 5 rounds, showing the winner of each
+  const podiumTrucks = results.map((r, i) => {
     const won = r.winner === 'player';
     const winnerTruck = won ? r.playerTruck : r.computerTruck;
-    const imgSrc = renderTruckToImage(winnerTruck, 70, 56);
+    const imgSrc = renderTruckToImage(winnerTruck, 160, 128);
     const isMVP = i === mvpIndex;
-    const dmgDealt = won ? (r.computerDamage || 0) : (r.playerDamage || 0);
 
     return `
-      <div class="result-round ${won ? 'result-round--win' : 'result-round--lose'} ${isMVP ? 'result-round--mvp' : ''}">
-        <div class="result-round__truck-img ${isMVP ? 'result-round__truck-img--mvp' : ''}">
+      <div class="podium-slot ${won ? 'podium-slot--win' : 'podium-slot--lose'} ${isMVP ? 'podium-slot--mvp' : ''}"
+           style="animation-delay: ${i * 0.12}s">
+        <div class="podium-truck ${isMVP ? 'podium-truck--mvp' : ''}">
+          ${isMVP ? '<div class="mvp-fire"></div>' : ''}
           <img src="${imgSrc}" alt="${winnerTruck.name}" draggable="false" />
-          ${isMVP ? '<span class="mvp-badge">MVP</span>' : ''}
+          ${isMVP ? '<div class="mvp-crown">&#x1F451;</div>' : ''}
         </div>
-        <div class="result-round__info">
-          <span class="result-round__num">R${i + 1}</span>
-          <span class="result-round__name">${winnerTruck.name}</span>
-          <span class="result-round__dmg">${dmgDealt} dmg</span>
+        <div class="podium-name">${winnerTruck.name}</div>
+        <div class="podium-base">
+          <span class="podium-round">R${i + 1}</span>
+          <span class="podium-result">${won ? 'WIN' : 'LOSS'}</span>
         </div>
-        <span class="result-round__outcome">${won ? 'WIN' : 'LOSS'}</span>
+      </div>
+    `;
+  }).join('');
+
+  // Compact round summary for the bottom
+  const roundSummary = results.map((r, i) => {
+    const won = r.winner === 'player';
+    return `
+      <div class="round-line ${won ? 'round-line--win' : 'round-line--lose'}">
+        <span class="round-line__r">R${i + 1}</span>
+        <span class="round-line__vs">${r.playerTruck.name} vs ${r.computerTruck.name}</span>
+        <span class="round-line__out">${won ? 'WIN' : 'LOSS'}</span>
       </div>
     `;
   }).join('');
@@ -107,33 +117,20 @@ function getResultsHTML(results, playerWins, computerWins, isVictory) {
           <span class="results-score-divider">-</span>
           <span class="results-score-computer">${computerWins}</span>
         </div>
-        <div class="results-subtitle">
-          ${isVictory ? 'Your monster trucks crushed the competition!' : 'The computer got lucky this time!'}
-        </div>
       </div>
 
-      <div class="results-stats">
-        <div class="results-stat">
-          <span class="results-stat__label">YOUR DAMAGE</span>
-          <span class="results-stat__value results-stat__value--green">${totalPlayerDamage}</span>
-        </div>
-        <div class="results-stat">
-          <span class="results-stat__label">DAMAGE TAKEN</span>
-          <span class="results-stat__value results-stat__value--red">${totalComputerDamage}</span>
-        </div>
-        <div class="results-stat">
-          <span class="results-stat__label">ROUNDS WON</span>
-          <span class="results-stat__value">${playerWins}/5</span>
-        </div>
+      <div class="podium-row">
+        ${podiumTrucks}
       </div>
 
-      <div class="results-rounds scroll-area">
-        ${roundBreakdown}
+      <div class="results-bottom">
+        <div class="round-summary">
+          ${roundSummary}
+        </div>
+        <button class="btn btn-fire play-again-btn">
+          <span>&#x1F504; PLAY AGAIN</span>
+        </button>
       </div>
-
-      <button class="btn btn-fire play-again-btn">
-        <span>&#x1F504; PLAY AGAIN!</span>
-      </button>
     </div>
   `;
 }
@@ -175,7 +172,7 @@ function injectResultsStyles() {
       align-items: center;
       width: 100%;
       height: 100%;
-      padding: 16px 24px;
+      padding: 8px 16px;
       overflow: hidden;
     }
 
@@ -196,7 +193,7 @@ function injectResultsStyles() {
       animation: confettiDrop linear infinite;
     }
 
-    /* Header */
+    /* Header — compact */
     .results-header {
       text-align: center;
       position: relative;
@@ -206,7 +203,7 @@ function injectResultsStyles() {
 
     .results-verdict {
       font-family: var(--font-display);
-      font-size: clamp(36px, 8vw, 72px);
+      font-size: clamp(28px, 6vw, 56px);
       letter-spacing: 4px;
       line-height: 1;
     }
@@ -216,7 +213,7 @@ function injectResultsStyles() {
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      filter: drop-shadow(0 4px 0 rgba(0, 80, 0, 0.5));
+      filter: drop-shadow(0 3px 0 rgba(0, 80, 0, 0.5));
       animation: victoryBounce 1s ease 0.5s;
     }
 
@@ -225,211 +222,278 @@ function injectResultsStyles() {
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      filter: drop-shadow(0 4px 0 rgba(100, 0, 0, 0.5));
+      filter: drop-shadow(0 3px 0 rgba(100, 0, 0, 0.5));
     }
 
     .results-score {
       font-family: var(--font-heading);
-      font-size: clamp(40px, 7vw, 64px);
+      font-size: clamp(28px, 5vw, 44px);
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 12px;
-      margin: 8px 0;
+      gap: 10px;
+      margin: 2px 0;
     }
 
     .results-score-player { color: var(--neon-green); }
     .results-score-divider { color: var(--chrome-dark); font-size: 0.7em; }
     .results-score-computer { color: var(--fire-red); }
 
-    .results-subtitle {
-      font-family: var(--font-accent);
-      font-size: clamp(12px, 2vw, 18px);
-      color: var(--chrome);
-      letter-spacing: 2px;
-    }
-
-    /* Stats */
-    .results-stats {
+    /* ---- Podium Row ---- */
+    .podium-row {
       display: flex;
-      gap: 20px;
-      margin: 12px 0;
-      flex-shrink: 0;
-      position: relative;
-      z-index: 1;
-    }
-
-    .results-stat {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 8px 16px;
-      background: var(--bg-elevated);
-      border-radius: var(--radius-md);
-      border: 1px solid var(--steel);
-      min-width: 100px;
-    }
-
-    .results-stat__label {
-      font-family: var(--font-body);
-      font-size: 9px;
-      color: var(--chrome-dark);
-      letter-spacing: 1px;
-    }
-
-    .results-stat__value {
-      font-family: var(--font-heading);
-      font-size: 28px;
-      color: var(--chrome-bright);
-    }
-
-    .results-stat__value--green { color: var(--neon-green); }
-    .results-stat__value--red { color: var(--fire-red); }
-
-    /* Round breakdown */
-    .results-rounds {
+      align-items: flex-end;
+      justify-content: center;
+      gap: clamp(6px, 1.5vw, 16px);
       flex: 1;
       min-height: 0;
       width: 100%;
-      max-width: 600px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      margin: 8px 0;
+      max-width: 900px;
       position: relative;
       z-index: 1;
+      padding: 0 8px;
     }
 
-    .result-round {
+    .podium-slot {
       display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 10px;
-      padding: 4px 12px;
-      border-radius: var(--radius-sm);
-      font-family: var(--font-body);
-      font-size: 12px;
-      background: var(--bg-surface);
+      flex: 1;
+      max-width: 160px;
+      opacity: 0;
+      animation: podiumReveal 0.5s ease forwards;
     }
 
-    .result-round--win {
-      border-left: 3px solid var(--neon-green);
+    @keyframes podiumReveal {
+      0% { opacity: 0; transform: translateY(30px); }
+      100% { opacity: 1; transform: translateY(0); }
     }
 
-    .result-round--lose {
-      border-left: 3px solid var(--fire-red);
-    }
-
-    /* MVP round glow */
-    .result-round--mvp {
-      border: 2px solid #ffaa00;
-      border-left: 3px solid #ffaa00;
-      background: linear-gradient(90deg, rgba(255,170,0,0.12), var(--bg-surface) 40%);
-      animation: mvpGlow 2s ease-in-out infinite;
-    }
-
-    @keyframes mvpGlow {
-      0%, 100% { box-shadow: 0 0 8px rgba(255,170,0,0.3), 0 0 20px rgba(255,68,0,0.15); }
-      50% { box-shadow: 0 0 16px rgba(255,170,0,0.6), 0 0 35px rgba(255,68,0,0.3); }
-    }
-
-    /* Truck image in round */
-    .result-round__truck-img {
+    /* Truck image container */
+    .podium-truck {
       position: relative;
-      width: 56px;
-      height: 44px;
-      flex-shrink: 0;
+      width: clamp(80px, 15vw, 140px);
+      height: clamp(64px, 12vw, 112px);
     }
 
-    .result-round__truck-img img {
+    .podium-truck img {
       width: 100%;
       height: 100%;
       object-fit: contain;
     }
 
-    /* MVP truck flame effect */
-    .result-round__truck-img--mvp img {
-      filter: drop-shadow(0 0 6px rgba(255,170,0,0.8)) drop-shadow(0 0 12px rgba(255,68,0,0.5));
-      animation: mvpFlame 1.5s ease-in-out infinite;
+    /* Win/loss coloring on truck */
+    .podium-slot--lose .podium-truck img {
+      filter: brightness(0.5) saturate(0.4);
     }
 
-    @keyframes mvpFlame {
+    .podium-slot--win .podium-truck img {
+      filter: drop-shadow(0 2px 8px rgba(57, 255, 20, 0.3));
+    }
+
+    /* ---- MVP Effects ---- */
+    .podium-truck--mvp img {
+      filter: drop-shadow(0 0 10px rgba(255,170,0,0.8))
+              drop-shadow(0 0 20px rgba(255,68,0,0.5))
+              drop-shadow(0 -4px 15px rgba(255,210,26,0.4)) !important;
+      animation: mvpPulse 1.8s ease-in-out infinite;
+    }
+
+    @keyframes mvpPulse {
       0%, 100% {
-        filter: drop-shadow(0 0 6px rgba(255,170,0,0.8)) drop-shadow(0 0 12px rgba(255,68,0,0.5));
+        filter: drop-shadow(0 0 10px rgba(255,170,0,0.8))
+                drop-shadow(0 0 20px rgba(255,68,0,0.5))
+                drop-shadow(0 -4px 15px rgba(255,210,26,0.4));
       }
       50% {
-        filter: drop-shadow(0 -3px 8px rgba(255,210,26,0.9)) drop-shadow(0 0 18px rgba(255,68,0,0.7));
+        filter: drop-shadow(0 0 16px rgba(255,210,26,1))
+                drop-shadow(0 0 30px rgba(255,68,0,0.7))
+                drop-shadow(0 -8px 25px rgba(255,210,26,0.6));
       }
     }
 
-    .mvp-badge {
+    /* Fire effect behind MVP truck */
+    .mvp-fire {
       position: absolute;
-      top: -6px;
-      right: -6px;
-      font-family: var(--font-heading);
-      font-size: 9px;
-      letter-spacing: 1px;
-      color: #000;
-      background: linear-gradient(135deg, #ffd21a, #ffaa00);
-      padding: 1px 5px;
-      border-radius: 4px;
-      box-shadow: 0 0 8px rgba(255,170,0,0.6);
+      inset: -20% -15% -10% -15%;
+      background:
+        radial-gradient(ellipse at 50% 80%, rgba(255,68,0,0.4) 0%, transparent 60%),
+        radial-gradient(ellipse at 40% 70%, rgba(255,210,26,0.3) 0%, transparent 50%),
+        radial-gradient(ellipse at 60% 75%, rgba(255,107,26,0.35) 0%, transparent 55%);
+      animation: fireFlicker 1.2s ease-in-out infinite alternate;
+      pointer-events: none;
+      border-radius: 50%;
     }
 
-    .result-round__info {
-      flex: 1;
+    @keyframes fireFlicker {
+      0% {
+        opacity: 0.7;
+        transform: scaleY(1) scaleX(1);
+      }
+      33% {
+        opacity: 0.9;
+        transform: scaleY(1.08) scaleX(0.96);
+      }
+      66% {
+        opacity: 0.75;
+        transform: scaleY(1.04) scaleX(1.02);
+      }
+      100% {
+        opacity: 0.85;
+        transform: scaleY(1.1) scaleX(0.98);
+      }
+    }
+
+    /* Crown emoji above MVP */
+    .mvp-crown {
+      position: absolute;
+      top: -18px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: clamp(20px, 3vw, 32px);
+      animation: crownBob 2s ease-in-out infinite;
+      filter: drop-shadow(0 2px 6px rgba(255,170,0,0.8));
+    }
+
+    @keyframes crownBob {
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50% { transform: translateX(-50%) translateY(-5px); }
+    }
+
+    /* Truck name below image */
+    .podium-name {
+      font-family: var(--font-heading);
+      font-size: clamp(9px, 1.3vw, 13px);
+      color: var(--chrome);
+      letter-spacing: 0.5px;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+      margin-top: 2px;
+    }
+
+    .podium-slot--mvp .podium-name {
+      color: #ffd21a;
+      text-shadow: 0 0 8px rgba(255,170,0,0.5);
+    }
+
+    /* Pedestal base */
+    .podium-base {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 4px 0 6px;
+      border-radius: 0 0 6px 6px;
+      margin-top: 2px;
+    }
+
+    .podium-slot--win .podium-base {
+      background: linear-gradient(180deg, #1a3a1a, #0d200d);
+      border: 1px solid rgba(57,255,20,0.3);
+      border-top: 2px solid rgba(57,255,20,0.5);
+    }
+
+    .podium-slot--lose .podium-base {
+      background: linear-gradient(180deg, #3a1a1a, #200d0d);
+      border: 1px solid rgba(255,45,45,0.3);
+      border-top: 2px solid rgba(255,45,45,0.5);
+    }
+
+    .podium-slot--mvp .podium-base {
+      background: linear-gradient(180deg, #3a2a0a, #201a05);
+      border: 1px solid rgba(255,170,0,0.4);
+      border-top: 2px solid rgba(255,210,26,0.6);
+      box-shadow: 0 0 12px rgba(255,170,0,0.2);
+    }
+
+    .podium-round {
+      font-family: var(--font-body);
+      font-size: 9px;
+      color: var(--chrome-dark);
+      letter-spacing: 1px;
+    }
+
+    .podium-result {
+      font-family: var(--font-heading);
+      font-size: clamp(11px, 1.5vw, 14px);
+      letter-spacing: 1px;
+    }
+
+    .podium-slot--win .podium-result { color: var(--neon-green); }
+    .podium-slot--lose .podium-result { color: var(--fire-red); }
+    .podium-slot--mvp .podium-result { color: #ffd21a; }
+
+    /* ---- Bottom Area: round summary + play again ---- */
+    .results-bottom {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 16px;
+      width: 100%;
+      max-width: 900px;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 1;
+      padding-top: 4px;
+    }
+
+    .round-summary {
+      flex: 1;
+      display: flex;
+      gap: 4px;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .round-line {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 3px 4px;
+      border-radius: 4px;
+      background: var(--bg-surface);
+      opacity: 0.6;
       min-width: 0;
     }
 
-    .result-round__num {
+    .round-line--win { border-top: 2px solid var(--neon-green); }
+    .round-line--lose { border-top: 2px solid var(--fire-red); }
+
+    .round-line__r {
       font-family: var(--font-heading);
-      font-size: 14px;
+      font-size: 10px;
       color: var(--chrome-dark);
-      width: 26px;
-      flex-shrink: 0;
     }
 
-    .result-round__name {
-      font-family: var(--font-heading);
-      font-size: 13px;
-      color: var(--chrome);
+    .round-line__vs {
+      font-family: var(--font-body);
+      font-size: 8px;
+      color: var(--chrome-dark);
       letter-spacing: 0.5px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      max-width: 100%;
+      text-align: center;
     }
 
-    .result-round__dmg {
-      font-family: var(--font-body);
-      font-size: 10px;
-      color: var(--chrome-dark);
-      letter-spacing: 1px;
-      flex-shrink: 0;
-    }
-
-    .result-round__outcome {
+    .round-line__out {
       font-family: var(--font-heading);
-      font-size: 14px;
-      letter-spacing: 1px;
-      flex-shrink: 0;
+      font-size: 10px;
     }
 
-    .result-round--win .result-round__outcome {
-      color: var(--neon-green);
-    }
-
-    .result-round--lose .result-round__outcome {
-      color: var(--fire-red);
-    }
+    .round-line--win .round-line__out { color: var(--neon-green); }
+    .round-line--lose .round-line__out { color: var(--fire-red); }
 
     /* Play again button */
     .play-again-btn {
       position: relative;
       z-index: 1;
-      font-size: clamp(18px, 3vw, 26px);
-      padding: 14px 40px;
+      font-size: clamp(14px, 2.5vw, 22px);
+      padding: 10px 28px;
       flex-shrink: 0;
       animation: buttonPulse 2s ease-in-out infinite;
     }
@@ -440,15 +504,14 @@ function injectResultsStyles() {
     }
 
     /* Small screen */
-    @media (max-height: 450px) {
-      .results-content { padding: 8px 16px; }
-      .results-verdict { font-size: 32px; }
-      .results-score { font-size: 36px; margin: 4px 0; }
-      .results-stats { gap: 10px; margin: 6px 0; }
-      .results-stat { padding: 4px 10px; min-width: 80px; }
-      .results-stat__value { font-size: 22px; }
-      .play-again-btn { padding: 10px 30px; }
-      .result-round__truck-img { width: 44px; height: 34px; }
+    @media (max-height: 400px) {
+      .results-content { padding: 4px 10px; }
+      .results-verdict { font-size: 24px; }
+      .results-score { font-size: 22px; margin: 0; }
+      .podium-truck { width: 70px; height: 56px; }
+      .mvp-crown { font-size: 16px; top: -14px; }
+      .podium-name { font-size: 8px; }
+      .play-again-btn { padding: 8px 20px; }
     }
   `;
   document.head.appendChild(style);
