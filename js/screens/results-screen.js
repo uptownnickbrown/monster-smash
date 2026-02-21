@@ -30,7 +30,7 @@ export function createResultsScreen(container) {
     screenEl.classList.add('results-exit');
     resetBattle();
     setTimeout(() => {
-      setState({ screen: 'team-select' });
+      setState({ screen: 'title' });
     }, 400);
   });
 

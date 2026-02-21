@@ -187,11 +187,11 @@ export function startBattle(pTruck, eTruck, roundNum, onComplete, previousResult
   onRoundComplete = onComplete;
   pastResults = previousResults;
 
-  // Pre-render pedestal truck images
+  // Pre-render pedestal truck images (large source for crisp display)
   pedestalTruckImages = pastResults.map(r => {
     const truck = r.winner === 'player' ? r.playerTruck : r.computerTruck;
     return {
-      img: renderTruckToImage(truck, 50, 40),
+      img: renderTruckToImage(truck, 140, 112),
       isPlayer: r.winner === 'player',
       name: truck.name,
     };
@@ -1384,12 +1384,13 @@ function drawStadiumBg(ctx, w, h) {
 }
 
 function drawPedestals(ctx, w, h) {
-  // 5 pedestals evenly spaced across the top-middle of the arena
-  const pedestalW = 40;
-  const pedestalH = 28;
-  const totalWidth = 5 * pedestalW + 4 * 12; // 5 pedestals + 4 gaps
+  // 5 pedestals evenly spaced across the upper background
+  const pedestalW = 80;
+  const pedestalH = 36;
+  const gap = 16;
+  const totalWidth = 5 * pedestalW + 4 * gap;
   const startX = (w - totalWidth) / 2;
-  const baseY = h * 0.52;
+  const baseY = h * 0.53;
 
   // Pre-load images for pedestals with results
   const imgCache = [];
@@ -1402,7 +1403,7 @@ function drawPedestals(ctx, w, h) {
   });
 
   for (let i = 0; i < 5; i++) {
-    const x = startX + i * (pedestalW + 12);
+    const x = startX + i * (pedestalW + gap);
     const hasResult = i < pastResults.length;
 
     ctx.save();
@@ -1414,43 +1415,43 @@ function drawPedestals(ctx, w, h) {
       : '#1a1a2a';
     ctx.fillStyle = pedestalColor;
     ctx.beginPath();
-    ctx.roundRect(x, baseY, pedestalW, pedestalH, [0, 0, 4, 4]);
+    ctx.roundRect(x, baseY, pedestalW, pedestalH, [0, 0, 6, 6]);
     ctx.fill();
 
     // Pedestal top surface
     ctx.fillStyle = hasResult
       ? (pedestalTruckImages[i].isPlayer ? '#2a6a2a' : '#6a2a2a')
       : '#2a2a3a';
-    ctx.fillRect(x - 2, baseY - 2, pedestalW + 4, 4);
+    ctx.fillRect(x - 3, baseY - 3, pedestalW + 6, 5);
 
     // Pedestal glow for completed rounds
     if (hasResult) {
-      const glowColor = pedestalTruckImages[i].isPlayer
-        ? 'rgba(57, 255, 20, 0.15)'
-        : 'rgba(255, 45, 45, 0.15)';
-      ctx.globalAlpha = 0.4;
+      ctx.globalAlpha = 0.5;
       ctx.shadowColor = pedestalTruckImages[i].isPlayer ? '#39ff14' : '#ff2d2d';
-      ctx.shadowBlur = 8;
+      ctx.shadowBlur = 14;
+      const glowColor = pedestalTruckImages[i].isPlayer
+        ? 'rgba(57, 255, 20, 0.2)'
+        : 'rgba(255, 45, 45, 0.2)';
       ctx.fillStyle = glowColor;
-      ctx.fillRect(x - 2, baseY - 2, pedestalW + 4, 4);
+      ctx.fillRect(x - 3, baseY - 3, pedestalW + 6, 5);
       ctx.shadowBlur = 0;
     }
 
     // Round number on pedestal
     ctx.globalAlpha = hasResult ? 0.8 : 0.3;
-    ctx.font = `bold ${8}px "Bangers", sans-serif`;
+    ctx.font = `bold ${11}px "Bangers", sans-serif`;
     ctx.textAlign = 'center';
     ctx.fillStyle = hasResult
       ? (pedestalTruckImages[i].isPlayer ? '#39ff14' : '#ff2d2d')
       : '#555';
-    ctx.fillText(`R${i + 1}`, x + pedestalW / 2, baseY + pedestalH - 6);
+    ctx.fillText(`R${i + 1}`, x + pedestalW / 2, baseY + pedestalH - 8);
 
-    // Draw winning truck on pedestal
+    // Draw winning truck on pedestal — big and proud
     if (hasResult && imgCache[i] && imgCache[i].complete) {
-      ctx.globalAlpha = 0.7;
-      const imgW = 44;
-      const imgH = 35;
-      ctx.drawImage(imgCache[i], x + (pedestalW - imgW) / 2, baseY - imgH - 2, imgW, imgH);
+      ctx.globalAlpha = 0.75;
+      const imgW = 90;
+      const imgH = 72;
+      ctx.drawImage(imgCache[i], x + (pedestalW - imgW) / 2, baseY - imgH, imgW, imgH);
     }
 
     ctx.restore();
